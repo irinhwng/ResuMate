@@ -1,0 +1,17 @@
+python-dotenv==1.0.1
+requests==2.32.3
+beautifulsoup4==4.12.3
+fastapi==0.109.2
+uvicorn==0.27.1
+pydantic==2.10.3
+openai==1.55.3
+pdfkit==1.0.0
+PyPDF2==3.0.1
+backoff==2.2.1
+deepsearch-toolkit==0.48.0
+langchain==0.3.12
+selenium==4.17.2
+webdriver-manager==4.0.2
+unstructured==0.16.11
+langchain-community==0.3.12
+pyautogui==0.9.54
