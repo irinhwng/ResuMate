@@ -117,7 +117,36 @@ class PDFExtractorChatGPT:
         """Extract job details verbatim from a PDF file using OpenAI's ChatGPT API"""
         job_description = self._read_pdf()
         try:
-            prompt = f"Extract the job details word for word from the following job description:\n{job_description}"
+            prompt = f"""Extract the following information from a job posting verbatim, if available.
+            If any section or similar section is missing, explicitly state "Not Available."
+            Structure the output in the following Markdown format:
+            ```markdown
+            # Job Title
+            [Job Title Here in bullet points]
+            *If not available, state: Not Available.*
+
+            # Job Summary
+            [Job Summary Here in bullet points]
+            *If not available, state: Not Available.*
+
+            # Responsibilities
+            [Responsibilities Here in bullet points]
+            *If not available, state: Not Available.*
+
+            # Qualifications
+            [Qualifications Here in bullet points]
+            *If not available, state: Not Available.*
+
+            # Recommended Skills
+            [Recommended Skills Here in bullet points]
+            *If not available, state: Not Available.*
+
+            # Additional Information
+            [List any additional information that could improve the candidate's chances of a response.]
+            ```
+            Here is the job description:
+            {job_description}
+            """
             self.logger.info("Sending request to OpenAI API")
             response = self.openai_client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -127,7 +156,8 @@ class PDFExtractorChatGPT:
                     ]
                     )
 
-            job_details = response['choices'][0]['message']['content']
+            # job_details = response['choices'][0]['message']['content']
+            job_details = response.to_dict()['choices'][0]['message']['content']
             self.logger.info("Successfully extracted job details")
             return job_details
 
