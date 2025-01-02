@@ -5,6 +5,7 @@ from typing import Callable
 from contextlib import contextmanager
 
 class LoggerConfig:
+    # TODO: add args and retuns in docstring
     def __init__(self):
         # Configure base logging
         logging.basicConfig(

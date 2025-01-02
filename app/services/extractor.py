@@ -7,7 +7,8 @@ from deepsearch.documents.core.export import export_to_markdown
 from typing import Optional, Iterator
 from pathlib import Path
 from dotenv import load_dotenv
-from openai import OpenAI
+# from openai import OpenAI #TODO: remove later
+from langchain_openai import ChatOpenAI
 
 import glob
 import json
@@ -17,9 +18,10 @@ from tempfile import mkdtemp
 import PyPDF2
 
 from app.utils.logger import LoggerConfig
+from app.utils.prompt_loader import initialize_prompt
 
-#TODO: determine which option is best to extract job details word for word (PDFExtractor or OpenAI)
 class PDFExtractorDeepSearch:
+    # TODO: add args and retuns in docstring
     """Convert PDF files to markdown using DeepSearch Developed by IBM Research"""
 
     def __init__(
@@ -82,10 +84,11 @@ class PDFExtractorDeepSearch:
             return {"tmp_source": fn, "doc_md": doc_md}
 
 class PDFExtractorChatGPT:
+    # TODO: add args and retuns in docstring
     """Extract job details verbatim using OpenAI's ChatGPT suite"""
-    def __init__(self, file_path: str):
+    def __init__(self, prompt_name: str, file_path: str, model_name: str = "gpt-4o-mini"):
         self.logger = LoggerConfig().get_logger(__name__)
-
+        self.prompt_name = prompt_name
         load_dotenv()
 
         api_key = os.getenv("OPENAI_API_KEY")
@@ -93,18 +96,17 @@ class PDFExtractorChatGPT:
             self.logger.error("OPENAI_API_KEY not found in environment variables")
             raise ValueError("OPENAI_API_KEY not found in environment variables")
 
-        self.openai_client = OpenAI(
-            api_key=api_key
-        )
+        self.model_name = model_name
+        self.model = ChatOpenAI(model = self.model_name, api_key=api_key)
         self.file_path = Path(file_path).resolve()
 
     @LoggerConfig().log_execution
     def lazy_load(self):
         _file_name = str(self.file_path).split("/")[-1]
         self.logger.info(f"Extracting job details using GPT 4o model {_file_name}...")
-        return self._extract_job_details()
+        return self.extract_details()
 
-    def _read_pdf(self):
+    def read_pdf(self):
         """Extract text from a PDF file."""
         with open(str(self.file_path), 'rb') as file:
             reader = PyPDF2.PdfReader(file)
@@ -113,53 +115,82 @@ class PDFExtractorChatGPT:
                 text += page.extract_text()
         return text
 
-    def _extract_job_details(self) -> str:
-        """Extract job details verbatim from a PDF file using OpenAI's ChatGPT API"""
-        job_description = self._read_pdf()
+    def extract_details(self) -> str:
+        """
+        Extract details verbatim from a PDF file using OpenAI's ChatGPT API.
+
+        Main assumption is there is only 1 input parameter for every prompt mentioned from config file
+        """
+        input_data = self.read_pdf()
         try:
-            prompt = f"""Extract the following information from a job posting verbatim, if available.
-            If any section or similar section is missing, explicitly state "Not Available."
-            Structure the output in the following Markdown format:
-            ```markdown
-            # Job Title
-            [Job Title Here in bullet points]
-            *If not available, state: Not Available.*
+            prompt = (initialize_prompt(self.prompt_name))[self.prompt_name]
 
-            # Job Summary
-            [Job Summary Here in bullet points]
-            *If not available, state: Not Available.*
+            # Map the prompt input to the associated variables
+            prompt.map_value("input_data", input_data)
+            self.logger.info(prompt.description)
 
-            # Responsibilities
-            [Responsibilities Here in bullet points]
-            *If not available, state: Not Available.*
+            if prompt.is_usable():
+                self.logger.info("Starting generation job for %s", prompt.prompt_name)
+                template = prompt.get_template()
+                chain = template | self.model
+                inputs = prompt.get_all_inputs()
+                self.logger.info("LLM prompt %s \n input(s): \n %s", prompt.value, inputs)
+                gpt_response = (chain.invoke(inputs)).model_dump() #TODO: change to async request later
+                if gpt_response["response_metadata"]["finish_reason"] == "stop":
+                    self.logger.info(
+                        "%s completed it's response naturally without hitting any limits such as max tokens or stop sequence", self.model_name)
+                else:
+                    self.logger.info(
+                        "%s completed it's response due to hitting a limit such as max tokens or stop sequence", self.model_name)
+                return gpt_response["content"]
 
-            # Qualifications
-            [Qualifications Here in bullet points]
-            *If not available, state: Not Available.*
+            unmapped_params = [
+                parameter for parameter, value in prompt.get_all_inputs().items() if value is None
+                ]
+            raise ValueError(f"There is an unmapped parameter(s): {unmapped_params}")
+            # prompt = f"""Extract the following information from a job posting verbatim, if available.
+            # If any section or similar section is missing, explicitly state "Not Available."
+            # Structure the output in the following Markdown format:
+            # ```markdown
+            # # Job Title
+            # [Job Title Here in bullet points]
+            # *If not available, state: Not Available.*
 
-            # Recommended Skills
-            [Recommended Skills Here in bullet points]
-            *If not available, state: Not Available.*
+            # # Job Summary
+            # [Job Summary Here in bullet points]
+            # *If not available, state: Not Available.*
 
-            # Additional Information
-            [List any additional information that could improve the candidate's chances of a response.]
-            ```
-            Here is the job description:
-            {job_description}
-            """
-            self.logger.info("Sending request to OpenAI API")
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": prompt}
-                    ]
-                    )
+            # # Responsibilities
+            # [Responsibilities Here in bullet points]
+            # *If not available, state: Not Available.*
 
-            # job_details = response['choices'][0]['message']['content']
-            job_details = response.to_dict()['choices'][0]['message']['content']
-            self.logger.info("Successfully extracted job details")
-            return job_details
+            # # Qualifications
+            # [Qualifications Here in bullet points]
+            # *If not available, state: Not Available.*
+
+            # # Recommended Skills
+            # [Recommended Skills Here in bullet points]
+            # *If not available, state: Not Available.*
+
+            # # Additional Information
+            # [List any additional information that could improve the candidate's chances of a response.]
+            # ```
+            # Here is the job description:
+            # {job_description}
+            # """
+        #     self.logger.info("Sending request to OpenAI API")
+        #     response = self.openai_client.chat.completions.create(
+        #         model="gpt-4o-mini",
+        #         messages=[
+        #             {"role": "system", "content": "You are a helpful assistant."},
+        #             {"role": "user", "content": prompt_value},
+        #             ]
+        #             )
+
+        #     # job_details = response['choices'][0]['message']['content']
+        #     job_details = response.to_dict()['choices'][0]['message']['content']
+        #     self.logger.info("Successfully extracted job details")
+        #     return job_details
 
         except Exception as e:
             self.logger.error(f"Error extracting job details: {e}")
@@ -167,6 +198,7 @@ class PDFExtractorChatGPT:
 
 if __name__ == "__main__":
     test_filepath = "/Users/erinhwang/Projects/ResuMate/data/Warnerbros_seniordatascientist_123456.pdf"
-    test_extractor = PDFExtractorChatGPT(test_filepath)
+    test_prompt_name = "job_listing_extractor"
+    test_extractor = PDFExtractorChatGPT(test_prompt_name, test_filepath)
     test_results = test_extractor.lazy_load()
     print(test_results)

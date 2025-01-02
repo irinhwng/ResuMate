@@ -2,6 +2,7 @@
 This file contains the application's API with Swagger documentation
 authors: Erin Hwang
 """
+# TODO: do this later - subject to be deleted
 
 from pydantic import BaseModel, HttpUrl
 

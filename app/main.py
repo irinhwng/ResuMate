@@ -8,7 +8,6 @@ from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from pydantic import HttpUrl
 
-from app.schemas.scraper import ScrapeRequest, ScrapeResponse
 # from app.services.scraper import JobScraperService
 from app.controllers.listing_loader import JobListingLoader
 
@@ -24,7 +23,7 @@ tags_metadata = [
 ]
 
 app = FastAPI(
-    title="Resumate API",
+    title="ResuMate API",
     description="API for job listing scraping and analysis",
     version="1.0.0",
     docs_url="/docs",
@@ -95,8 +94,7 @@ async def scrape_url(
                 "job_id": job_id
                 }
                 )
-        result = job_data_loader.execute() #TODO
-        print("TESTING")
+        result = job_data_loader.execute()
 
         if "error" in result:
             raise HTTPException(

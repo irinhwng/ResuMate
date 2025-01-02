@@ -1,0 +1,8 @@
+[
+    {
+        "prompt_name": "job_listing_extractor",
+        "description": "Extracts job listing in PDF format",
+        "prompt_value": "Extract the following information from a job posting verbatim, if available.\nIf any section or similar section is missing, explicitly state 'Not Available.'\nStructure the output in the following Markdown format:\n```markdown\n# Job Title\n[Job Title Here in bullet points]\n*If not available, state: Not Available.*\n\n# Job Summary\n[Job Summary Here in bullet points]\n*If not available, state: Not Available.*\n\n# Responsibilities\n[Responsibilities Here in bullet points]\n*If not available, state: Not Available.*\n\n# Qualifications\n[Qualifications Here in bullet points]\n*If not available, state: Not Available.*\n\n# Recommended Skills\n[Recommended Skills Here in bullet points]\n*If not available, state: Not Available.*\n\n# Additional Information\n[List any additional information that could improve the candidate's chances of a response.]\n```\nHere is the job description:\n{input_data}",
+        "input_parameters": ["input_data"]
+}
+]

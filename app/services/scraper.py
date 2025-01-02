@@ -117,7 +117,7 @@ class JobScraperService:
                 # Navigate to the URL
                 web_driver.get(url)
                 ################COOKIE TEST STARTS################
-                # Common cookie button selectors
+                # Common cookie button selectors # TODO: takes a long time... better way
                 cookie_selectors = [
                     "button[id*='cookie-accept']",
                     "button[id*='accept-cookies']",
