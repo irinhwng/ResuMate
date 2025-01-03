@@ -7,11 +7,10 @@ import os
 
 from app.utils.logger import LoggerConfig
 from app.services.scraper import JobScraperService
-from app.services.extractor import PDFExtractorDeepSearch, PDFExtractorChatGPT
-from langchain.document_loaders import PyPDFLoader
+from app.services.extractor import PDFExtractorChatGPT
 
-DEFAULT_DRIVER = "chrome"
-JOB_LISTING_PROMPT_NAME = "job_listing_extractor"
+WEBDRIVER = os.getenv("WEBDRIVER")
+JOB_LISTING_PROMPT_NAME = os.getenv("JOB_LISTING_PROMPT_NAME")
 
 
 
@@ -21,7 +20,7 @@ class JobListingLoader:
 
     def __init__(self, url: str, **kwargs: Dict[str, Any]):
         self.logger = LoggerConfig().get_logger(__name__)
-        self.scraper = JobScraperService(driver = DEFAULT_DRIVER)
+        self.scraper = JobScraperService(driver = WEBDRIVER)
         self.extractor = None
         self.url = url
 
@@ -39,7 +38,7 @@ class JobListingLoader:
         return pdf_path
 
     def _extract_pdf(self, pdf_path: str):
-        """Load job listing content into markdown str from a PDF file"""
+        """Extract job listing content into str from a PDF file"""
         if self.extractor is None:
             self.extractor = PDFExtractorChatGPT(prompt_name=JOB_LISTING_PROMPT_NAME, file_path=pdf_path)
         job_str = self.extractor.lazy_load()
