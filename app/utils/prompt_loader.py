@@ -33,8 +33,8 @@ def initialize_prompt(prompt_name: str, prompt_config_filepath: str = "app/confi
                 prompt_data=PromptData(**prompt_dict))
             logger.info(f"Prompt {prompt_name} initialized from config file")
             return initialized_prompts
-        logger.error(f"Prompt {prompt_name} not found in config file")
-        raise ValueError(f"Prompt {prompt_name} not found in config file")
+    logger.error(f"Prompt {prompt_name} not found in config file")
+    raise ValueError(f"Prompt {prompt_name} not found in config file")
 
 if __name__ == "__main__":
     test_initialized_prompt = initialize_prompt("job_listing_extractor")
