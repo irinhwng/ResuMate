@@ -16,3 +16,4 @@ unstructured==0.16.11
 langchain-community==0.3.12
 pyautogui==0.9.54
 langchain-openai==0.2.14
+python-multipart==0.0.20
