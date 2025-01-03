@@ -197,8 +197,9 @@ class PDFExtractorChatGPT:
             raise
 
 if __name__ == "__main__":
-    test_filepath = "/Users/erinhwang/Projects/ResuMate/data/Warnerbros_seniordatascientist_123456.pdf"
-    test_prompt_name = "job_listing_extractor"
+    # test_filepath = "/Users/erinhwang/Projects/ResuMate/data/Warnerbros_seniordatascientist_123456.pdf"
+    test_filepath = "/Users/erinhwang/Projects/ResuMate/data/uploaded_resumes/Hwang_Erin_resumate_base.pdf"
+    test_prompt_name = os.getenv("RESUME_PROMPT_NAME")
     test_extractor = PDFExtractorChatGPT(test_prompt_name, test_filepath)
     test_results = test_extractor.lazy_load()
     print(test_results)

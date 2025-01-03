@@ -33,6 +33,7 @@ import pyautogui
 
 logger = LoggerConfig().get_logger(__name__)
 
+LISTING_OUTPUT_PATH = os.getenv("LISTING_OUTPUT_PATH")
 # @logger.log_execution
 # def some_function():
 #     with logger.operation_logger("important operation"):
@@ -47,7 +48,7 @@ class JobScraperService:
         """Initialize beautiful soup headers and set OpenAI API key"""
         self.logger = LoggerConfig().get_logger(__name__)
         load_dotenv()
-        self.data_dir = os.getenv('DATA_OUTPUT_PATH')
+        self.data_dir = LISTING_OUTPUT_PATH
         if driver not in self.ALLOWED_DRIVERS:
             raise ValueError(f"Invalid driver: {driver}")
         self.driver = driver
