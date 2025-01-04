@@ -134,7 +134,7 @@ class JobScraperService:
                 ]
 
                 # Try each selector
-                wait = WebDriverWait(web_driver, 5)
+                wait = WebDriverWait(web_driver, 2)
                 for selector in cookie_selectors:
                     try:
                         cookie_button = wait.until(
