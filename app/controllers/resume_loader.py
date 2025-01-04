@@ -4,7 +4,7 @@ authors: Erin Hwang
 """
 import os
 from app.utils.logger import LoggerConfig
-from app.services.extractor import PDFExtractorChatGPT
+from app.services.extractor import FileExtractorChatGPT
 
 RESUME_PROMPT_NAME = os.getenv("RESUME_PROMPT_NAME")
 
@@ -21,7 +21,7 @@ class ResumeLoader:
 
     def __init__(self, file_path: str):
         self.logger = LoggerConfig().get_logger(__name__)
-        self.extractor = PDFExtractorChatGPT(prompt_name=RESUME_PROMPT_NAME, file_path=file_path)
+        self.extractor = FileExtractorChatGPT(prompt_name=RESUME_PROMPT_NAME, file_path=file_path)
 
     @LoggerConfig().log_execution
     def execute(self):

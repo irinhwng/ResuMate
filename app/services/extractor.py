@@ -84,7 +84,7 @@ class PDFExtractorDeepSearch:
             doc_md = self.export_to_markdown(searched_documents)
             return {"tmp_source": fn, "doc_md": doc_md}
 
-class PDFExtractorChatGPT:
+class FileExtractorChatGPT:
     # TODO: add args and retuns in docstring
     """Extract job details verbatim using OpenAI's ChatGPT suite"""
     def __init__(self, prompt_name: str, file_path: str, model_name: str = "gpt-4o-mini"):
@@ -212,6 +212,6 @@ if __name__ == "__main__":
     # test_filepath = "/Users/erinhwang/Projects/ResuMate/data/Warnerbros_seniordatascientist_123456.pdf"
     test_filepath = "/Users/erinhwang/Projects/ResuMate/data/uploaded_resumes/Hwang_Erin_resume_draft_base.docx"
     test_prompt_name = os.getenv("RESUME_PROMPT_NAME")
-    test_extractor = PDFExtractorChatGPT(test_prompt_name, test_filepath)
+    test_extractor = FileExtractorChatGPT(test_prompt_name, test_filepath)
     test_results = test_extractor.lazy_load()
     print(test_results)
