@@ -16,6 +16,7 @@ import os
 import zipfile
 from tempfile import mkdtemp
 import PyPDF2
+import docx
 
 from app.utils.logger import LoggerConfig
 from app.utils.prompt_loader import initialize_prompt
@@ -115,13 +116,24 @@ class PDFExtractorChatGPT:
                 text += page.extract_text()
         return text
 
+    def read_docx(self):
+        """Extract text from a DOCX file."""
+        doc = docx.Document(str(self.file_path))
+        text = '\n'.join([paragraph.text for paragraph in doc.paragraphs])
+        return text
+
     def extract_details(self) -> str:
         """
-        Extract details verbatim from a PDF file using OpenAI's ChatGPT API.
+        Extract details verbatim from a PDF or DOCX file using OpenAI's ChatGPT API.
 
         Main assumption is there is only 1 input parameter for every prompt mentioned from config file
         """
-        input_data = self.read_pdf()
+        if self.file_path.suffix == ".pdf":
+            input_data = self.read_pdf()
+        elif self.file_path.suffix == ".docx":
+            input_data = self.read_docx()
+        else:
+            raise ValueError("Unsupported file type")
         try:
             prompt = (initialize_prompt(self.prompt_name))[self.prompt_name]
 
@@ -198,7 +210,7 @@ class PDFExtractorChatGPT:
 
 if __name__ == "__main__":
     # test_filepath = "/Users/erinhwang/Projects/ResuMate/data/Warnerbros_seniordatascientist_123456.pdf"
-    test_filepath = "/Users/erinhwang/Projects/ResuMate/data/uploaded_resumes/Hwang_Erin_resumate_base.pdf"
+    test_filepath = "/Users/erinhwang/Projects/ResuMate/data/uploaded_resumes/Hwang_Erin_resume_draft_base.docx"
     test_prompt_name = os.getenv("RESUME_PROMPT_NAME")
     test_extractor = PDFExtractorChatGPT(test_prompt_name, test_filepath)
     test_results = test_extractor.lazy_load()
