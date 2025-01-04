@@ -14,7 +14,7 @@ from app.utils.logger import LoggerConfig
 from uuid import uuid4
 
 # TODO: tmp storage --> use opensearch later on (close to production)
-pdf_storage = {} #key is uuiid, val is filepath
+resume_storage = {} #key is uuiid, val is filepath
 
 logger = LoggerConfig().get_logger(__name__)
 
@@ -62,24 +62,29 @@ app.openapi = custom_openapi
     "/upload-resume",
     tags = ["resume"],
     # response_model = str, #TODO
-    summary="Upload a resume PDF file",
-    description="Upload a PDF file containing resume content for generation"
+    summary="Upload a resume PDF or DOCX file",
+    description="Upload a PDF or DOCX file containing resume content for AI generation"
     )
 async def upload_resume(file: UploadFile):
     """
-    Upload a resume PDF file for analysis
+    Upload a resume PDF or DOCX file as prerequisite for resume analysis and generation
 
     Args:
-        file (UploadFile): Resume PDF file
+        file (UploadFile): Resume PDF or DOCX file
 
     Returns:
         str: Uploaded file name
     """
-    if file.content_type != "application/pdf":
-        return JSONResponse(status_code=400, content={"message": "Invalid file type. Only PDF files are allowed."})
+    if file.content_type not in ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "message": "Invalid file type. Only PDF or DOCX files are allowed."
+                }
+                )
 
     file_location = (Path(UPLOADED_RESUME_PATH) / file.filename).resolve()
-    #generate unique id for pdf
+    #generate unique id for pdf or docx
     _file_uid = str(uuid4())
 
     try:
@@ -87,7 +92,7 @@ async def upload_resume(file: UploadFile):
         with open(str(file_location), "wb") as f:
             f.write(await file.read())
         logger.info(f"Uploaded resume file: {file.filename}")
-        pdf_storage[_file_uid] = str(file_location)
+        resume_storage[_file_uid] = str(file_location)
         return JSONResponse(status_code=200, content = {
             "message": "Resume uploaded successfully",
             "resumate_uuid": _file_uid
@@ -104,9 +109,9 @@ async def upload_resume(file: UploadFile):
         )
 async def get_current_resume_storage():
     """
-    Returns the current state of the PDF storage
+    Returns the current state of the PDF or DOCX storage
     """
-    return JSONResponse(status_code=200, content=pdf_storage)
+    return JSONResponse(status_code=200, content=resume_storage)
 
 @app.post(
     "/scrape",
@@ -151,7 +156,7 @@ async def scrape_url(
         ScrapeResponse: Scraped content and status
     """
 
-    if resumate_uuid not in pdf_storage:
+    if resumate_uuid not in resume_storage:
         logger.error(f"ResuMate UUID not found in storage - please upload resume first")
         return JSONResponse(
             status_code=404,
