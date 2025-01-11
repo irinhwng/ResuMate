@@ -18,11 +18,10 @@ class JobListingLoader:
     # TODO: add args and retuns in docstring
     """Load job listings from various sources"""
 
-    def __init__(self, url: str, **kwargs: Dict[str, Any]):
+    def __init__(self, **kwargs: Dict[str, Any]):
         self.logger = LoggerConfig().get_logger(__name__)
         self.scraper = JobScraperService(driver = WEBDRIVER)
         self.extractor = None
-        self.url = url
 
         # extract kwargs with default
         self.company_name = kwargs.get("company_name", "default")
@@ -31,10 +30,10 @@ class JobListingLoader:
 
         self.source_type = (self.company_name + "_" + self.job_title + "_" + self.job_id).replace(" ", "")
 
-    def _convert_listing(self):
+    def _convert_listing(self, url: str):
         """Create PDF of a job listing content from a URL"""
         self.logger.info(f"Creating PDF from URL listing...")
-        pdf_path = self.scraper.execute(str(self.url), self.source_type) #TODO
+        pdf_path = self.scraper.execute(str(url), self.source_type) #TODO
         return pdf_path
 
     def _extract_pdf(self, pdf_path: str):
@@ -48,9 +47,9 @@ class JobListingLoader:
         """Extract text from job listing content"""
 
     @LoggerConfig().log_execution
-    def execute(self):
+    def process(self, url: str):
         """Execute job listing loading process"""
-        pdf_path = self._convert_listing()
+        pdf_path = self._convert_listing(url)
         job_str = self._extract_pdf(pdf_path)
         return job_str
 

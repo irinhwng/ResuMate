@@ -21,6 +21,7 @@ import docx
 from app.utils.logger import LoggerConfig
 from app.utils.prompt_loader import initialize_prompt
 
+CHAT_MODEL = os.getenv("CHAT_MODEL")
 class PDFExtractorDeepSearch:
     # TODO: add args and retuns in docstring
     """Convert PDF files to markdown using DeepSearch Developed by IBM Research"""
@@ -87,7 +88,7 @@ class PDFExtractorDeepSearch:
 class FileExtractorChatGPT:
     # TODO: add args and retuns in docstring
     """Extract job details verbatim using OpenAI's ChatGPT suite"""
-    def __init__(self, prompt_name: str, file_path: str, model_name: str = "gpt-4o-mini"):
+    def __init__(self, prompt_name: str, file_path: str, model_name: str = CHAT_MODEL):
         self.logger = LoggerConfig().get_logger(__name__)
         self.prompt_name = prompt_name
         load_dotenv()

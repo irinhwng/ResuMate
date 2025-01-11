@@ -3,6 +3,7 @@ This file contains the application's API with Swagger documentation
 authors: Erin Hwang
 """
 import os
+import asyncio
 from fastapi import FastAPI, Query, HTTPException, File, UploadFile
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
@@ -21,6 +22,8 @@ logger = LoggerConfig().get_logger(__name__)
 UPLOADED_RESUME_PATH = os.getenv("UPLOADED_RESUME_PATH")
 # from app.services.scraper import JobScraperService
 from app.controllers.listing_loader import JobListingLoader
+from app.controllers.resume_loader import ResumeLoader
+from app.controllers.threshold_evaluator import SemanticSimilarity
 
 tags_metadata = [
     {
@@ -155,41 +158,30 @@ async def scrape_url(
     Returns:
         ScrapeResponse: Scraped content and status
     """
-
-    if resumate_uuid not in resume_storage:
-        logger.error(f"ResuMate UUID not found in storage - please upload resume first")
-        return JSONResponse(
-            status_code=404,
-            content={
-                "message": "ResuMate UUID not found in storage - please upload resume first"
-                }
-                )
     try:
-        job_data_loader = JobListingLoader(
-            url,
-            **{
-                "company_name": company_name,
-                "job_title": job_title,
-                "job_id": job_id
-                }
-                )
-        result = job_data_loader.execute()
+        if resumate_uuid in resume_storage:
 
-        if "error" in result:
-            raise HTTPException(
-                status_code=500,
-                detail={
-                    "status": "error",
-                    "message": "Scraping failed",
-                    "details": result
-                }
-            )
 
-        return {
-            "status": "success",
-            "url": str(url),
-            "content": result
-        }
+            job_loader = JobListingLoader(
+                **{
+                    "company_name": company_name,
+                    "job_title": job_title,
+                    "job_id": job_id
+                    }
+                    )
+            job_data = job_loader.process(url)
+            resume_data = ResumeLoader(resume_storage[resumate_uuid]).process()
+            print(" ERIN "*10)
+            semantic_evaluator = SemanticSimilarity().process(resume_data, job_data)
+            (semantic_scores) = await asyncio.gather(semantic_evaluator)
+            print(semantic_scores)
+            #TODO: create threshold controller
+            # pseudo code ThresholdEvaluatorController.evaluate(job_data, resume_data)
+            return {
+                "status": "success",
+                "url": str(url),
+                "content": job_data
+            }
 
     except Exception as e:
         raise HTTPException(
