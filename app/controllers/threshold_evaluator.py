@@ -54,7 +54,7 @@ def soft_cosine_similarity(embedding1, embedding2):
     # Return the similarity score (handle edge case for zero denominator)
     return numerator / denominator if denominator != 0 else 0
 
-class SemanticSimilarity:
+class SemanticSimilarityEvaluator:
     def __init__(
         self,
         transformer_model: str = TRANSFORMER_MODEL,

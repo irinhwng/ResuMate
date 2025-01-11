@@ -23,7 +23,7 @@ UPLOADED_RESUME_PATH = os.getenv("UPLOADED_RESUME_PATH")
 # from app.services.scraper import JobScraperService
 from app.controllers.listing_loader import JobListingLoader
 from app.controllers.resume_loader import ResumeLoader
-from app.controllers.threshold_evaluator import SemanticSimilarity
+from app.controllers.threshold_evaluator import SemanticSimilarityEvaluator
 
 tags_metadata = [
     {
@@ -172,7 +172,7 @@ async def scrape_url(
             job_data = job_loader.process(url)
             resume_data = ResumeLoader(resume_storage[resumate_uuid]).process()
             print(" ERIN "*10)
-            semantic_evaluator = SemanticSimilarity().process(resume_data, job_data)
+            semantic_evaluator = SemanticSimilarityEvaluator().process(resume_data, job_data)
             (semantic_scores) = await asyncio.gather(semantic_evaluator)
             print(semantic_scores)
             #TODO: create threshold controller
