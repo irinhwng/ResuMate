@@ -55,6 +55,7 @@ def soft_cosine_similarity(embedding1, embedding2):
     return numerator / denominator if denominator != 0 else 0
 
 class SemanticSimilarityEvaluator:
+    #TODO: add docstrings
     def __init__(
         self,
         transformer_model: str = TRANSFORMER_MODEL,
@@ -109,7 +110,7 @@ class SemanticSimilarityEvaluator:
         """
         # turn list of CHG descriptions to embeddings
         ss_response = self.semantic_search(resume_str, job_str)
-        self.logger.info("Semantic similairty completed: cosine similarity score is:%s", ss_response)
+        self.logger.info("Semantic similarity completed: cosine similarity score is:%s", ss_response)
         return ss_response
 
 

@@ -14,16 +14,20 @@ from pathlib import Path
 from app.utils.logger import LoggerConfig
 from uuid import uuid4
 
+# from app.services.scraper import JobScraperService
+from app.controllers.listing_loader import JobListingLoader
+from app.controllers.resume_loader import ResumeLoader
+from app.controllers.threshold_evaluator import SemanticSimilarityEvaluator
+
+
 # TODO: tmp storage --> use opensearch later on (close to production)
 resume_storage = {} #key is uuiid, val is filepath
 
 logger = LoggerConfig().get_logger(__name__)
 
 UPLOADED_RESUME_PATH = os.getenv("UPLOADED_RESUME_PATH")
-# from app.services.scraper import JobScraperService
-from app.controllers.listing_loader import JobListingLoader
-from app.controllers.resume_loader import ResumeLoader
-from app.controllers.threshold_evaluator import SemanticSimilarityEvaluator
+COSINE_THRESHOLD = float(os.getenv("COSINE_THRESHOLD"))
+SOFT_COSINE_THRESHOLD = float(os.getenv("SOFT_COSINE_THRESHOLD"))
 
 tags_metadata = [
     {
@@ -174,9 +178,19 @@ async def scrape_url(
             print(" ERIN "*10)
             semantic_evaluator = SemanticSimilarityEvaluator().process(resume_data, job_data)
             (semantic_scores) = await asyncio.gather(semantic_evaluator)
-            print(semantic_scores)
-            #TODO: create threshold controller
-            # pseudo code ThresholdEvaluatorController.evaluate(job_data, resume_data)
+            #TODO: TOO VERBOSE
+            if semantic_scores[0]["cosine_similarity"] >= COSINE_THRESHOLD and semantic_scores[0]["soft_cosine_similarity"] >= SOFT_COSINE_THRESHOLD:
+                logger.info("Semantic similarity threshold met:\n\t%s", semantic_scores)
+                #TODO: add the mother controller that generates and renders the new resume
+            else:
+                logger.info("Semantic similarity threshold NOT met:\n\t%s", semantic_scores)
+                #TODO: maybe add a response that says "not enough similarity"
+                return {
+                    "status": "success",
+                    "url": str(url),
+                    "content": job_data,
+                    "semantic_similarity": semantic_scores
+                }
             return {
                 "status": "success",
                 "url": str(url),
