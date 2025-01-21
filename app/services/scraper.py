@@ -130,7 +130,11 @@ class JobScraperService:
                     "[aria-label*='Allow']",
                     "button.allow-button",
                     "#allow-cookies",
-                    "ppc-content[key='gdpr-allowCookiesText']"
+                    "ppc-content[key='gdpr-allowCookiesText']",
+                    "#consent_agree",  # Direct ID selector
+                    "button.consent-agree",  # Class-based selector
+                    "button[data-action*='acceptCookies']",  # Attribute-based selector
+                    "button[type='button'][data-bs-dismiss='modal']"
                 ]
 
                 # Try each selector
