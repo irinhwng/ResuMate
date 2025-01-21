@@ -85,17 +85,8 @@ class SemanticSimilarityEvaluator:
         # man_score = manhattan_distances(resume_embedding, job_embedding).flatten()[0]
         soft_cos_score = soft_cosine_similarity(resume_embedding, job_embedding)
 
-
-        #test: reverse scale euc and man scores to be more similar to cosine (temporary)
-        # normalized_euc_score = 1 / (1 + euc_score)
-        # normalized_man_score = 1 / (1 + man_score)
-
         print("HERE")
-        # return top k indices in dictionary format
-        # return {
-        #     f"CHG_RANK_{i+1}": {"CHG_ID": rank[0].split(":")[0], "CHG_COS_SIM": float(rank[1])}
-        #     for i, rank in enumerate(ranked_results[:top_k])
-        # }
+
         return {
             "cosine_similarity": cos_score,
             "soft_cosine_similarity": soft_cos_score,

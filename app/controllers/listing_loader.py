@@ -1,5 +1,5 @@
 """
-This  file contains the applications API
+This file contains the applications API
 authors: Erin Hwang
 """
 from typing import Dict, Any

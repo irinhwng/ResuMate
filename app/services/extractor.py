@@ -161,49 +161,6 @@ class FileExtractorChatGPT:
                 parameter for parameter, value in prompt.get_all_inputs().items() if value is None
                 ]
             raise ValueError(f"There is an unmapped parameter(s): {unmapped_params}")
-            # prompt = f"""Extract the following information from a job posting verbatim, if available.
-            # If any section or similar section is missing, explicitly state "Not Available."
-            # Structure the output in the following Markdown format:
-            # ```markdown
-            # # Job Title
-            # [Job Title Here in bullet points]
-            # *If not available, state: Not Available.*
-
-            # # Job Summary
-            # [Job Summary Here in bullet points]
-            # *If not available, state: Not Available.*
-
-            # # Responsibilities
-            # [Responsibilities Here in bullet points]
-            # *If not available, state: Not Available.*
-
-            # # Qualifications
-            # [Qualifications Here in bullet points]
-            # *If not available, state: Not Available.*
-
-            # # Recommended Skills
-            # [Recommended Skills Here in bullet points]
-            # *If not available, state: Not Available.*
-
-            # # Additional Information
-            # [List any additional information that could improve the candidate's chances of a response.]
-            # ```
-            # Here is the job description:
-            # {job_description}
-            # """
-        #     self.logger.info("Sending request to OpenAI API")
-        #     response = self.openai_client.chat.completions.create(
-        #         model="gpt-4o-mini",
-        #         messages=[
-        #             {"role": "system", "content": "You are a helpful assistant."},
-        #             {"role": "user", "content": prompt_value},
-        #             ]
-        #             )
-
-        #     # job_details = response['choices'][0]['message']['content']
-        #     job_details = response.to_dict()['choices'][0]['message']['content']
-        #     self.logger.info("Successfully extracted job details")
-        #     return job_details
 
         except Exception as e:
             self.logger.error(f"Error extracting job details: {e}")
