@@ -73,7 +73,8 @@ async def test_main():
     for i, section in enumerate(prompt_names):
         service = ChatGPTRequestService(prompt_name=section)
         # tasks.append(service.send_request(resume_data=test_resume_data[i], job_data=test_job_data))
-        tasks[section] = asyncio.create_task(service.send_request(resume_data=test_resume_data[i], job_data=test_job_data))
+        kwargs = {"resume_data": test_resume_data[i], "job_data": test_job_data}
+        tasks[section] = asyncio.create_task(service.send_request(**kwargs))
     # test_responses = await asyncio.gather(*tasks)
     test_responses = await asyncio.gather(*tasks.values())
     test_results = {section: result for section, result in zip(tasks.keys(), test_responses)}
