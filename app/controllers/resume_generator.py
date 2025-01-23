@@ -7,6 +7,10 @@ import asyncio
 from app.utils.logger import LoggerConfig
 from langchain.text_splitter import MarkdownHeaderTextSplitter
 from app.services.generator import ChatGPTRequestService
+import os
+
+N_PRIMARY_BULLETS= os.getenv("N_PRIMARY_BULLETS")
+N_SECONDARY_BULLETS= os.getenv("N_SECONDARY_BULLETS")
 
 class ResumeGeneratorController:
     """
@@ -81,11 +85,11 @@ class ResumeGeneratorController:
                 # iterate over each section in professional experience
                 for idx, exp_section in enumerate(base_section, start=1):
                     task_name = self.extract_title(exp_section)
-                    n_bullets = 7 if "AI Center of Competence" in task_name else 2 #TODO: highest priority if others are interested in usnig this
+                    n_bullets = N_PRIMARY_BULLETS if "AI Center of Competence" in task_name else N_SECONDARY_BULLETS #TODO: highest priority if others are interested in usnig this
                     kwargs = {
                         "job_data": self.job_data,
                         "base_section": exp_section,
-                        "n_bullets": str(n_bullets)
+                        "n_bullets": n_bullets
                     }
                     tasks[task_name] = asyncio.create_task(service.send_request(**kwargs))
                     self.logger.info("Creating generation task for %s", task_name)
