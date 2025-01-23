@@ -80,12 +80,13 @@ class ResumeGeneratorController:
             elif prompt_name == "professional_experience":
                 # iterate over each section in professional experience
                 for idx, exp_section in enumerate(base_section, start=1):
+                    task_name = self.extract_title(exp_section)
+                    n_bullets = 7 if "AI Center of Competence" in task_name else 2 #TODO: highest priority if others are interested in usnig this
                     kwargs = {
                         "job_data": self.job_data,
-                        "base_section": exp_section
+                        "base_section": exp_section,
+                        "n_bullets": str(n_bullets)
                     }
-                    # task_name = f"professional_experience_{idx}"
-                    task_name = self.extract_title(exp_section)#TODO: this can be cleaner
                     tasks[task_name] = asyncio.create_task(service.send_request(**kwargs))
                     self.logger.info("Creating generation task for %s", task_name)
             else:
