@@ -168,7 +168,8 @@ class FileExtractorChatGPT:
 
 if __name__ == "__main__":
     # test_filepath = "/Users/erinhwang/Projects/ResuMate/data/Warnerbros_seniordatascientist_123456.pdf"
-    test_filepath = "/Users/erinhwang/Projects/ResuMate/data/uploaded_resumes/Hwang_Erin_resume_draft_base.docx"
+    # test_filepath = "/Users/erinhwang/Projects/ResuMate/data/uploaded_resumes/Hwang_Erin_resume_draft_base.docx"
+    test_filepath = "/Users/erinhwang/Projects/ResuMate/experiments/resume_renderer.docx"
     test_prompt_name = os.getenv("RESUME_PROMPT_NAME")
     test_extractor = FileExtractorChatGPT(test_prompt_name, test_filepath)
     test_results = test_extractor.lazy_load()
