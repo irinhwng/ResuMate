@@ -8,6 +8,9 @@ from langchain.text_splitter import MarkdownHeaderTextSplitter
 from docx import Document
 import re
 import json
+import os
+
+GENERATED_RESUME_PATH = os.getenv("GENERATED_RESUME_PATH")
 
 #needs to read in docx file pertaining to UUID in main.py
 
@@ -27,8 +30,10 @@ class ResumeRendererController:
         #TODO: figure this out
     """
 
-    def __init__(self, resume_path: str, generated_content: dict):
+    def __init__(self, resume_path: str, generated_content: dict, source_name:str):
         self.logger = LoggerConfig().get_logger(__name__)
+        self.source_name = source_name
+        self.data_dir = GENERATED_RESUME_PATH
         self.resume_path = resume_path
         self.generated_content = generated_content
         self.keyword_splitter = MarkdownHeaderTextSplitter(
@@ -254,8 +259,10 @@ class ResumeRendererController:
         # lower = cleansed_content[curr_section]["lower"]
 
         # self.render_professional_experience(doc, curr_section, next_section, upper, lower)
-
-        doc.save("/Users/erinhwang/Projects/ResuMate/experiments/rendr_test_222.docx")
+        docx_fp = f"{self.data_dir}/{self.source_name}.docx" #ERIN
+        docx_fp = os.path.abspath(docx_fp)
+        doc.save(docx_fp)
+        self.logger.info(f"Resume rendered successfully at: {docx_fp}")
 
 
         # new_core = self.cleanse_text(self.generated_content["core_expertise"])

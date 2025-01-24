@@ -14,10 +14,11 @@ from pathlib import Path
 from app.utils.logger import LoggerConfig
 from uuid import uuid4
 
-# from app.services.scraper import JobScraperService
 from app.controllers.listing_loader import JobListingLoader
 from app.controllers.resume_loader import ResumeLoader
 from app.controllers.threshold_evaluator import SemanticSimilarityEvaluator
+from app.controllers.resume_generator import ResumeGeneratorController
+from app.controllers.resume_renderer import ResumeRendererController
 
 
 # TODO: tmp storage --> use opensearch later on (close to production)
@@ -173,7 +174,7 @@ async def scrape_url(
                     "job_id": job_id
                     }
                     )
-            #async
+            #TODO: turn job loader and resumeloader async
             job_data = job_loader.process(url)
             resume_data = ResumeLoader(resume_storage[resumate_uuid]).process()
 
@@ -182,7 +183,20 @@ async def scrape_url(
             #TODO: TOO VERBOSE
             if semantic_scores[0]["soft_cosine_similarity"] >= SOFT_COSINE_THRESHOLD:
                 logger.info("Semantic similarity threshold met:\n\t%s", semantic_scores)
-                #TODO: add the mother controller that generates and renders the new resume
+                #generate the content
+                #TODO: resume generator and cover letter generator should be async
+                #TODO: cover letter and resume renderers should be async
+                resume_generator = ResumeGeneratorController(resume_data, job_data)
+                resume_content = await resume_generator.generate_content()
+
+                resume_renderer = ResumeRendererController(
+                    resume_storage[resumate_uuid], resume_content, job_loader.source_type
+                    )
+
+                resume_renderer.execute()
+
+
+
             else:
                 logger.info("Semantic similarity threshold NOT met:\n\t%s", semantic_scores)
                 #TODO: maybe add a response that says "not enough similarity"
