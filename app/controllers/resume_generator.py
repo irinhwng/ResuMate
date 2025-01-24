@@ -11,6 +11,8 @@ import os
 
 N_PRIMARY_BULLETS= os.getenv("N_PRIMARY_BULLETS")
 N_SECONDARY_BULLETS= os.getenv("N_SECONDARY_BULLETS")
+N_CORE_WORDS = os.getenv("N_CORE_WORDS")
+N_TECHNICAL_WORDS = os.getenv("N_TECHNICAL_WORDS")
 
 class ResumeGeneratorController:
     """
@@ -74,10 +76,12 @@ class ResumeGeneratorController:
             service = ChatGPTRequestService(prompt_name = prompt_name)
 
             if prompt_name in ["core_expertise", "technical_snapshot"]:
+                n_words = N_CORE_WORDS if prompt_name == "core_expertise" else N_TECHNICAL_WORDS
                 kwargs = {
                     "job_data": self.job_data,
                     "professional_data": professional_data,
-                    "base_section": base_section
+                    "base_section": base_section,
+                    "n_words": n_words
                     }
                 tasks[prompt_name] = asyncio.create_task(service.send_request(**kwargs))
                 self.logger.info("Creating generation task for %s", prompt_name)
