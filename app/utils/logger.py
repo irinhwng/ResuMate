@@ -3,15 +3,25 @@ import functools
 import time
 from typing import Callable
 from contextlib import contextmanager
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+
+# Configure base logging
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
+    format="%(asctime)s | %(levelname)s | %(module)s | %(funcName)s | line: %(lineno)d | %(message)s"
+)
 class LoggerConfig:
     # TODO: add args and retuns in docstring
     def __init__(self):
-        # Configure base logging
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s | %(levelname)s | %(module)s | %(funcName)s | line: %(lineno)d | %(message)s"
-        )
+        # # Configure base logging
+        # logging.basicConfig(
+        #     level=logging.INFO,
+        #     format="%(asctime)s | %(levelname)s | %(module)s | %(funcName)s | line: %(lineno)d | %(message)s"
+        # )
         self.logger = logging.getLogger('resumate')
 
     def get_logger(self, name: str = None) -> logging.Logger:
