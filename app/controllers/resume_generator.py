@@ -118,7 +118,6 @@ class ResumeGeneratorController:
         # base section (professional experience n)
     # 4: Professional Experience 2
     # 5: Professional Experience 3
-        print("DA!")
 
 
 async def main():
