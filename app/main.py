@@ -180,9 +180,8 @@ async def scrape_url(
             job_data, resume_data = await asyncio.gather(job_loader_task, resume_loader_task)
 
             semantic_scores = SemanticSimilarityEvaluator().process(resume_data, job_data)
-            # (semantic_scores) = await asyncio.gather(semantic_evaluator) # TODO: subject to be removed
 
-            if semantic_scores[0]["soft_cosine_similarity"] >= SOFT_COSINE_THRESHOLD:
+            if semantic_scores["soft_cosine_similarity"] >= SOFT_COSINE_THRESHOLD:
                 logger.info("Semantic similarity threshold met:\n\t%s", semantic_scores)
                 #generate the content
                 #TODO: resume generator and cover letter generator should be async
