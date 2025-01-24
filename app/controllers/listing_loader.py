@@ -8,6 +8,7 @@ import os
 from app.utils.logger import LoggerConfig
 from app.services.scraper import JobScraperService
 from app.services.extractor import FileExtractorChatGPT
+import asyncio
 
 WEBDRIVER = os.getenv("WEBDRIVER")
 JOB_LISTING_PROMPT_NAME = os.getenv("JOB_LISTING_PROMPT_NAME")
@@ -30,27 +31,41 @@ class JobListingLoader:
 
         self.source_type = (self.company_name + "_" + self.job_title + "_" + self.job_id).replace(" ", "")
 
-    def _convert_listing(self, url: str):
+    async def _convert_listing(self, url: str):
         """Create PDF of a job listing content from a URL"""
         self.logger.info(f"Creating PDF from URL listing...")
-        pdf_path = self.scraper.execute(str(url), self.source_type) #TODO
+        pdf_path = await self.scraper.execute(str(url), self.source_type)
         return pdf_path
 
-    def _extract_pdf(self, pdf_path: str):
+    async def _extract_pdf(self, pdf_path: str):
         """Extract job listing content into str from a PDF file"""
         if self.extractor is None:
             self.extractor = FileExtractorChatGPT(prompt_name=JOB_LISTING_PROMPT_NAME, file_path=pdf_path)
-        job_str = self.extractor.lazy_load()
+        job_str = await self.extractor.extract_details()
         return job_str
-
-    def _extract_text(self, job_str): #TODO: remove
-        """Extract text from job listing content"""
 
     @LoggerConfig().log_execution
-    def process(self, url: str):
+    async def process(self, url: str):
         """Execute job listing loading process"""
-        pdf_path = self._convert_listing(url)
-        job_str = self._extract_pdf(pdf_path)
+        pdf_path = await self._convert_listing(url)
+        job_str = await self._extract_pdf(pdf_path)
         return job_str
+
+async def test_main():
+    job_loader = JobListingLoader(
+        **{
+            "company_name": "test_comapny",
+            "job_title": "test_title",
+            "job_id": "test_id"
+            }
+            )
+    test_url = "https://careers.etsy.com/jobs/senior-data-scientist-new-york-united-states-bee7221c-bf38-4b04-8557-7fdaacfc8d8d"
+    job_data = await job_loader.process(test_url)
+
+    print(job_data)
+
+if __name__ == "__main__":
+    asyncio.run(test_main())
+
 
 

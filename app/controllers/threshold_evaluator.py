@@ -92,7 +92,7 @@ class SemanticSimilarityEvaluator:
             # "manhattan_norm": normalized_man_score
             }
 
-    async def process(self, resume_str: str, job_str: str, ):
+    def process(self, resume_str: str, job_str: str, ):
         """
         Main method to run the semantic search either using given SQL query or its natural
         language equivalent using granite-code-instruct

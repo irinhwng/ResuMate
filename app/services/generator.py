@@ -43,7 +43,7 @@ class ChatGPTRequestService:
                 template = prompt.get_template()
                 chain = template | self.model
                 inputs = prompt.get_all_inputs() #investigate this during testing
-                self.logger.info("LLM prompt %s \n input(s): \n %s", prompt.value, inputs)
+                self.logger.debug("LLM prompt %s \n input(s): \n %s", prompt.value, inputs)
                 gpt_response = await chain.ainvoke(inputs)
                 gpt_json = gpt_response.model_dump()
                 if gpt_json["response_metadata"]["finish_reason"] == "stop":

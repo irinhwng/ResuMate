@@ -20,6 +20,7 @@ import docx
 
 from app.utils.logger import LoggerConfig
 from app.utils.prompt_loader import initialize_prompt
+import asyncio
 
 CHAT_MODEL = os.getenv("CHAT_MODEL")
 class PDFExtractorDeepSearch:
@@ -85,6 +86,20 @@ class PDFExtractorDeepSearch:
             doc_md = self.export_to_markdown(searched_documents)
             return {"tmp_source": fn, "doc_md": doc_md}
 
+def _read_pdf_sync(file_path: Path):
+    """Extract text from a PDF file."""
+    with open(str(file_path), 'rb') as file:
+        reader = PyPDF2.PdfReader(file)
+        text = ''
+        for page in reader.pages:
+            text += page.extract_text()
+    return text
+
+def _read_docx_sync(file_path: Path):
+    """Extract text from a DOCX file."""
+    doc = docx.Document(str(file_path))
+    text = '\n'.join([paragraph.text for paragraph in doc.paragraphs])
+    return text
 class FileExtractorChatGPT:
     # TODO: add args and retuns in docstring
     """Extract job details verbatim using OpenAI's ChatGPT suite"""
@@ -102,40 +117,30 @@ class FileExtractorChatGPT:
         self.model = ChatOpenAI(model = self.model_name, api_key=api_key)
         self.file_path = Path(file_path).resolve()
 
+    async def read_pdf_async(self):
+        """extract text from a PDF file - offloading synchronous work to a thread"""
+        return await asyncio.to_thread(_read_pdf_sync, self.file_path)
+
+    async def read_docx_async(self):
+        """extract text from a DOCX file - offloading synchronous work to a thread"""
+        return await asyncio.to_thread(_read_docx_sync, self.file_path)
+
     @LoggerConfig().log_execution
-    def lazy_load(self):
-        _file_name = str(self.file_path).split("/")[-1]
-        self.logger.info(f"Extracting job details using GPT 4o model {_file_name}...")
-        return self.extract_details()
-
-    def read_pdf(self):
-        """Extract text from a PDF file."""
-        with open(str(self.file_path), 'rb') as file:
-            reader = PyPDF2.PdfReader(file)
-            text = ''
-            for page in reader.pages:
-                text += page.extract_text()
-        return text
-
-    def read_docx(self):
-        """Extract text from a DOCX file."""
-        doc = docx.Document(str(self.file_path))
-        text = '\n'.join([paragraph.text for paragraph in doc.paragraphs])
-        return text
-
-    def extract_details(self) -> str:
+    async def extract_details(self) -> str:
         """
         Extract details verbatim from a PDF or DOCX file using OpenAI's ChatGPT API.
 
         Main assumption is there is only 1 input parameter for every prompt mentioned from config file
         """
         if self.file_path.suffix == ".pdf":
-            input_data = self.read_pdf()
+            input_data = await self.read_pdf_async()
         elif self.file_path.suffix == ".docx":
-            input_data = self.read_docx()
+            input_data = await self.read_docx_async()
         else:
             raise ValueError("Unsupported file type")
         try:
+            _file_name = str(self.file_path).split("/")[-1]
+            self.logger.info(f"Extracting job details using GPT 4o model {_file_name}...")
             prompt = (initialize_prompt(self.prompt_name))[self.prompt_name]
 
             # Map the prompt input to the associated variables
@@ -147,15 +152,16 @@ class FileExtractorChatGPT:
                 template = prompt.get_template()
                 chain = template | self.model
                 inputs = prompt.get_all_inputs()
-                self.logger.info("LLM prompt %s \n input(s): \n %s", prompt.value, inputs)
-                gpt_response = (chain.invoke(inputs)).model_dump() #TODO: change to async request later
-                if gpt_response["response_metadata"]["finish_reason"] == "stop":
+                self.logger.debug("LLM prompt %s \n input(s): \n %s", prompt.value, inputs)
+                gpt_response = await chain.ainvoke(inputs)
+                gpt_json = gpt_response.model_dump()
+                if gpt_json["response_metadata"]["finish_reason"] == "stop":
                     self.logger.info(
                         "%s completed it's response naturally without hitting any limits such as max tokens or stop sequence", self.model_name)
                 else:
                     self.logger.info(
                         "%s completed it's response due to hitting a limit such as max tokens or stop sequence", self.model_name)
-                return gpt_response["content"]
+                return gpt_json["content"]
 
             unmapped_params = [
                 parameter for parameter, value in prompt.get_all_inputs().items() if value is None
@@ -167,10 +173,11 @@ class FileExtractorChatGPT:
             raise
 
 if __name__ == "__main__":
+    #this is incorrect - since FileExtractorChatGPT is now async
     # test_filepath = "/Users/erinhwang/Projects/ResuMate/data/Warnerbros_seniordatascientist_123456.pdf"
     # test_filepath = "/Users/erinhwang/Projects/ResuMate/data/uploaded_resumes/Hwang_Erin_resume_draft_base.docx"
     test_filepath = "/Users/erinhwang/Projects/ResuMate/experiments/resume_renderer.docx"
     test_prompt_name = os.getenv("RESUME_PROMPT_NAME")
     test_extractor = FileExtractorChatGPT(test_prompt_name, test_filepath)
-    test_results = test_extractor.lazy_load()
+    test_results = test_extractor.extract_details()
     print(test_results)

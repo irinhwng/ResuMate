@@ -22,6 +22,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.driver_cache import DriverCacheManager
 import base64
 import time
+import asyncio
 
 ###COOKIE TEST###
 from selenium.webdriver.support.ui import WebDriverWait
@@ -103,78 +104,78 @@ class JobScraperService:
         pyautogui.press('enter')  # Confirm save
 
     def url_to_pdf(self, url: str, source_type: str) -> Optional[str]:
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            driver_dir = os.path.join(current_dir, "drivers")#install chrome driver within the repo
-            os.makedirs(driver_dir, exist_ok=True)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        driver_dir = os.path.join(current_dir, "drivers")#install chrome driver within the repo
+        os.makedirs(driver_dir, exist_ok=True)
+
+        if self.driver == "chrome":
+            web_driver = self.setup_chrome_driver(driver_dir)
+        elif self.driver == "safari":
+            web_driver = self.setup_safari_driver()
+        else:
+            raise ValueError(f"Invalid driver: {self.driver}")
+
+        try:
+            # Navigate to the URL
+            web_driver.get(url)
+            ################COOKIE TEST STARTS################
+            # Common cookie button selectors # TODO: takes a long time... better way
+            cookie_selectors = [
+                "button[id*='cookie-accept']",
+                "button[id*='accept-cookies']",
+                "[aria-label*='Accept cookies']",
+                "button[class*='cookie']",
+                "#onetrust-accept-btn-handler",
+                "[data-cookiebanner='accept_button']",
+                # "button[contains(text(), 'Allow')]",
+                "[aria-label*='Allow']",
+                "button.allow-button",
+                "#allow-cookies",
+                "ppc-content[key='gdpr-allowCookiesText']",
+                "#consent_agree",  # Direct ID selector
+                "button.consent-agree",  # Class-based selector
+                "button[data-action*='acceptCookies']",  # Attribute-based selector
+                "button[type='button'][data-bs-dismiss='modal']"
+            ]
+
+            # Try each selector
+            wait = WebDriverWait(web_driver, 2)
+            for selector in cookie_selectors:
+                try:
+                    cookie_button = wait.until(
+                        EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
+                    )
+                    cookie_button.click()
+                    self.logger.info("Accepted cookies")
+                    break
+                except TimeoutException:
+                    continue
+
+            # Wait for the page to fully render
+            time.sleep(3)
+            ################COOKIE TEST ENDS################
+
+            # Save the rendered page as a PDF
+            # Use a Chrome DevTools command for generating the PDF
+            pdf_path = f"{self.data_dir}/{source_type}.pdf"
+            pdf_path = os.path.abspath(pdf_path)
 
             if self.driver == "chrome":
-                web_driver = self.setup_chrome_driver(driver_dir)
+                self.generate_pdf_chrome(web_driver, pdf_path)
             elif self.driver == "safari":
-                web_driver = self.setup_safari_driver()
-            else:
-                raise ValueError(f"Invalid driver: {self.driver}")
+                self.generate_pdf_safari(web_driver, pdf_path)
 
-            try:
-                # Navigate to the URL
-                web_driver.get(url)
-                ################COOKIE TEST STARTS################
-                # Common cookie button selectors # TODO: takes a long time... better way
-                cookie_selectors = [
-                    "button[id*='cookie-accept']",
-                    "button[id*='accept-cookies']",
-                    "[aria-label*='Accept cookies']",
-                    "button[class*='cookie']",
-                    "#onetrust-accept-btn-handler",
-                    "[data-cookiebanner='accept_button']",
-                    # "button[contains(text(), 'Allow')]",
-                    "[aria-label*='Allow']",
-                    "button.allow-button",
-                    "#allow-cookies",
-                    "ppc-content[key='gdpr-allowCookiesText']",
-                    "#consent_agree",  # Direct ID selector
-                    "button.consent-agree",  # Class-based selector
-                    "button[data-action*='acceptCookies']",  # Attribute-based selector
-                    "button[type='button'][data-bs-dismiss='modal']"
-                ]
+            self.logger.info(f"PDF generated successfully at: {pdf_path} using {self.driver} \
+                                driver")
+            return pdf_path
 
-                # Try each selector
-                wait = WebDriverWait(web_driver, 2)
-                for selector in cookie_selectors:
-                    try:
-                        cookie_button = wait.until(
-                            EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
-                        )
-                        cookie_button.click()
-                        self.logger.info("Accepted cookies")
-                        break
-                    except TimeoutException:
-                        continue
-
-                # Wait for the page to fully render
-                time.sleep(3)
-                ################COOKIE TEST ENDS################
-
-                # Save the rendered page as a PDF
-                # Use a Chrome DevTools command for generating the PDF
-                pdf_path = f"{self.data_dir}/{source_type}.pdf"
-                pdf_path = os.path.abspath(pdf_path)
-
-                if self.driver == "chrome":
-                    self.generate_pdf_chrome(web_driver, pdf_path)
-                elif self.driver == "safari":
-                    self.generate_pdf_safari(web_driver, pdf_path)
-
-                self.logger.info(f"PDF generated successfully at: {pdf_path} using {self.driver} \
-                                 driver")
-                return pdf_path
-
-            except Exception as e:
-                self.logger.error(f"Error occurred: {e}")
-            finally:
-                web_driver.quit()
+        except Exception as e:
+            self.logger.error(f"Error occurred: {e}")
+        finally:
+            web_driver.quit()
 
     @LoggerConfig().log_execution
-    def execute(self, url: str, source_type) -> dict:
+    async def execute(self, url: str, source_type) -> dict:
         """
         Main execution method for scraping job listing webpage content
 
@@ -184,17 +185,12 @@ class JobScraperService:
         Returns:
             dict: Extracted job details from the webpage
         """
-        # # TODO: Add valid URL checker
-        # response = self._make_request(url)
-        # soup = self._parse_html(response.content)
-        # pdf = self._html_to_pdf(soup)
-        # text_content = soup.get_text(separator="\n")
-        # job_details = self.extract_job_details(text_content)
-        test_path = self.url_to_pdf(url, source_type)
-        return test_path
+        job_path = await asyncio.to_thread(self.url_to_pdf, url, source_type)
+        return job_path
 
 if __name__== "__main__":
+    # this is wrong since JobScraperService is now async
     url = "https://careers.wbd.com/global/en/job/WAMEGLOBALR000087600EXTERNALENGLOBAL/Senior-Data-Scientist?utm_source=linkedin&utm_medium=phenom-feeds"
     source_type = "test"
-    scraper = JobScraperService(driver = "safari")
+    scraper = JobScraperService(driver = "chrome")
     test_path = scraper.execute(url, source_type)

@@ -174,12 +174,13 @@ async def scrape_url(
                     "job_id": job_id
                     }
                     )
-            #TODO: turn job loader and resumeloader async
-            job_data = job_loader.process(url)
-            resume_data = ResumeLoader(resume_storage[resumate_uuid]).process()
+            job_loader_task = job_loader.process(url)
+            resume_loader_task = ResumeLoader(resume_storage[resumate_uuid]).process()
 
-            semantic_evaluator = SemanticSimilarityEvaluator().process(resume_data, job_data)
-            (semantic_scores) = await asyncio.gather(semantic_evaluator)
+            job_data, resume_data = await asyncio.gather(job_loader_task, resume_loader_task)
+
+            semantic_scores = SemanticSimilarityEvaluator().process(resume_data, job_data)
+            # (semantic_scores) = await asyncio.gather(semantic_evaluator) # TODO: subject to be removed
 
             if semantic_scores[0]["soft_cosine_similarity"] >= SOFT_COSINE_THRESHOLD:
                 logger.info("Semantic similarity threshold met:\n\t%s", semantic_scores)

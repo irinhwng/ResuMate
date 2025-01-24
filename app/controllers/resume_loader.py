@@ -24,7 +24,8 @@ class ResumeLoader:
         self.extractor = FileExtractorChatGPT(prompt_name=RESUME_PROMPT_NAME, file_path=file_path)
 
     @LoggerConfig().log_execution
-    def process(self):
+    async def process(self):
         """Execute resume loading process"""
-        resume_str = self.extractor.lazy_load()
+        self.logger.info("Extracting uploaded resume...")
+        resume_str = await self.extractor.extract_details()
         return resume_str
