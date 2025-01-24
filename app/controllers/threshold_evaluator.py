@@ -85,8 +85,6 @@ class SemanticSimilarityEvaluator:
         # man_score = manhattan_distances(resume_embedding, job_embedding).flatten()[0]
         soft_cos_score = soft_cosine_similarity(resume_embedding, job_embedding)
 
-        print("HERE")
-
         return {
             "cosine_similarity": cos_score,
             "soft_cosine_similarity": soft_cos_score,

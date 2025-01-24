@@ -243,7 +243,9 @@ class ResumeRendererController:
             i_next = i_curr + 1
             #retrieving section names to set up renderer
             curr_section = previous_titles[i_curr]
+            #TODO: high priority to edit if other people want to use this app
             next_section = previous_titles[i_next] if i_next != len(previous_titles) else "Education"
+
             #retrieve the generated high-level description of job title A
             upper = cleansed_content[curr_section]["upper"]
             #retrieve the generated bullet points of job title A
@@ -251,28 +253,11 @@ class ResumeRendererController:
             self.render_professional_experience(doc, curr_section, next_section, upper, lower)
             i_curr += 1
 
-
-
-        # curr_section = previous_titles[0]
-        # next_section = previous_titles[1]
-        # upper = cleansed_content[curr_section]["upper"]
-        # lower = cleansed_content[curr_section]["lower"]
-
         # self.render_professional_experience(doc, curr_section, next_section, upper, lower)
         docx_fp = f"{self.data_dir}/{self.source_name}.docx" #ERIN
         docx_fp = os.path.abspath(docx_fp)
         doc.save(docx_fp)
         self.logger.info(f"Resume rendered successfully at: {docx_fp}")
-
-
-        # new_core = self.cleanse_text(self.generated_content["core_expertise"])
-        # new_technical = self.cleanse_text(self.generated_content["technical_snapshot"])
-
-        # doc_iter_1 = self.render_keywords(doc, "core_expertise", new_core)
-        # doc_iter_2 = self.render_keywords(doc_iter_1, "technical_snapshot", new_technical)
-
-        # doc_iter_2.save("/Users/erinhwang/Projects/ResuMate/experiments/rendr_test_000.docx")
-        # return True
 
 
 
