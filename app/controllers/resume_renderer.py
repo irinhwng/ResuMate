@@ -137,7 +137,7 @@ class ResumeRendererController:
     def decouple_professional_experience(self, generated_str: str):
         """Decouples the high level sentence from the bullet points"""
         cleansed_professional = [
-            each.removeprefix("- ") for each in generated_str.split('\n')
+            each.removeprefix("- ").removeprefix("* ") for each in generated_str.split('\n')
             ]
         return cleansed_professional[0], cleansed_professional[1:]
 
