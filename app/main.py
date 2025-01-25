@@ -19,7 +19,7 @@ from app.controllers.resume_loader import ResumeLoader
 from app.controllers.threshold_evaluator import SemanticSimilarityEvaluator
 from app.controllers.resume_generator import ResumeGeneratorController
 from app.controllers.resume_renderer import ResumeRendererController
-
+import re
 
 # TODO: tmp storage --> use opensearch later on (close to production)
 resume_storage = {} #key is uuiid, val is filepath
@@ -178,8 +178,10 @@ async def scrape_url(
             resume_loader_task = ResumeLoader(resume_storage[resumate_uuid]).process()
 
             job_data, resume_data = await asyncio.gather(job_loader_task, resume_loader_task)
+            match = re.search(r"(.*?)# Additional Information", job_data, re.DOTALL)
+            job_data_result = match.group(1).strip()
 
-            semantic_scores = SemanticSimilarityEvaluator().process(resume_data, job_data)
+            semantic_scores = SemanticSimilarityEvaluator().process(resume_data, job_data_result)
 
             if semantic_scores["soft_cosine_similarity"] >= SOFT_COSINE_THRESHOLD:
                 logger.info("Semantic similarity threshold met:\n\t%s", semantic_scores)
