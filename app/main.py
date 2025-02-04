@@ -187,8 +187,7 @@ async def scrape_url(
 
             if semantic_scores["soft_cosine_similarity"] >= SOFT_COSINE_THRESHOLD:
                 logger.info("Semantic similarity threshold met:\n\t%s", semantic_scores)
-                #generate the content
-                #TODO: resume generator and cover letter generator should be async (controllers)
+                #generate the content for the resume and cover letter
 
                 #TODO: figure out the optional cover letter here - how can we determine if the cl should be rendered?
                 resume_generator_task = ResumeGeneratorController(resume_data, job_data).generate_content()
