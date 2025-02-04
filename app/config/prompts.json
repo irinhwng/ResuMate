@@ -30,6 +30,12 @@
     "input_parameters": ["job_data", "base_section", "n_bullets"]
 },
 {
+    "prompt_name": "cl_keyword_extractor",
+    "description": "extracts the primary keyword information to render the cover letter",
+    "prompt_value": "Your task is to extract the following information verabtim from the primary job listing. If any section or similar section is missing, explicitly state 'Not Available'. Output this extracted information in Markdown following this template:\n```markdown\n# Company Name\n# City, State\n# Position Name\n```\nEnsure the output contains the required information for one primary job listing in a single Markdown file and retains the exact wording from the resume. Here is the job resume:\n{input_data}",
+    "input_parameters": ["input_data"]
+},
+{
     "prompt_name": "test1",
     "description": "Test prompt 1",
     "prompt_value": "Given the job_data:\n{job_data}, create a single {resume_data} sentence.",

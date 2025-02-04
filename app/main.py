@@ -19,10 +19,12 @@ from app.controllers.resume_loader import ResumeLoader
 from app.controllers.threshold_evaluator import SemanticSimilarityEvaluator
 from app.controllers.resume_generator import ResumeGeneratorController
 from app.controllers.resume_renderer import ResumeRendererController
+from app.controllers.cl_generator import CoverLetterGeneratorController
 import re
 
 # TODO: tmp storage --> use opensearch later on (close to production)
 resume_storage = {} #key is uuiid, val is filepath
+cl_storage = {}
 
 logger = LoggerConfig().get_logger(__name__)
 
@@ -186,11 +188,14 @@ async def scrape_url(
             if semantic_scores["soft_cosine_similarity"] >= SOFT_COSINE_THRESHOLD:
                 logger.info("Semantic similarity threshold met:\n\t%s", semantic_scores)
                 #generate the content
-                #TODO: resume generator and cover letter generator should be async
-                #TODO: cover letter and resume renderers should be async
-                resume_generator = ResumeGeneratorController(resume_data, job_data)
-                resume_content = await resume_generator.generate_content()
+                #TODO: resume generator and cover letter generator should be async (controllers)
 
+                #TODO: figure out the optional cover letter here - how can we determine if the cl should be rendered?
+                resume_generator_task = ResumeGeneratorController(resume_data, job_data).generate_content()
+                cl_keyword_extractor_task = CoverLetterGeneratorController(job_loader.file_path).process()
+                resume_content, cl_keyword_md = await asyncio.gather(resume_generator_task, cl_keyword_extractor_task)
+
+                #TODO: cover letter and resume renderers should be async
                 resume_renderer = ResumeRendererController(
                     resume_storage[resumate_uuid], resume_content, job_loader.source_type
                     )
