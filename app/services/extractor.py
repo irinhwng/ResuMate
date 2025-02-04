@@ -86,7 +86,7 @@ class PDFExtractorDeepSearch:
             doc_md = self.export_to_markdown(searched_documents)
             return {"tmp_source": fn, "doc_md": doc_md}
 
-def _read_pdf_sync(file_path: Path):
+def read_pdf_sync(file_path: Path):
     """Extract text from a PDF file."""
     with open(str(file_path), 'rb') as file:
         reader = PyPDF2.PdfReader(file)
@@ -95,7 +95,7 @@ def _read_pdf_sync(file_path: Path):
             text += page.extract_text()
     return text
 
-def _read_docx_sync(file_path: Path):
+def read_docx_sync(file_path: Path):
     """Extract text from a DOCX file."""
     doc = docx.Document(str(file_path))
     text = '\n'.join([paragraph.text for paragraph in doc.paragraphs])
@@ -119,11 +119,11 @@ class FileExtractorChatGPT:
 
     async def read_pdf_async(self):
         """extract text from a PDF file - offloading synchronous work to a thread"""
-        return await asyncio.to_thread(_read_pdf_sync, self.file_path)
+        return await asyncio.to_thread(read_pdf_sync, self.file_path)
 
     async def read_docx_async(self):
         """extract text from a DOCX file - offloading synchronous work to a thread"""
-        return await asyncio.to_thread(_read_docx_sync, self.file_path)
+        return await asyncio.to_thread(read_docx_sync, self.file_path)
 
     @LoggerConfig().log_execution
     async def extract_details(self) -> str:
