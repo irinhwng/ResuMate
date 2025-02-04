@@ -30,6 +30,7 @@ class JobListingLoader:
         self.job_id = kwargs.get("job_id", "default")
 
         self.source_type = (self.company_name + "_" + self.job_title + "_" + self.job_id).replace(" ", "")
+        self.file_path = None
 
     async def _convert_listing(self, url: str):
         """Create PDF of a job listing content from a URL"""
@@ -48,6 +49,7 @@ class JobListingLoader:
     async def process(self, url: str):
         """Execute job listing loading process"""
         pdf_path = await self._convert_listing(url)
+        self.file_path = pdf_path
         job_str = await self._extract_pdf(pdf_path)
         return job_str
 
