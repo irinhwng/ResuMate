@@ -20,7 +20,9 @@ from app.controllers.threshold_evaluator import SemanticSimilarityEvaluator
 from app.controllers.resume_generator import ResumeGeneratorController
 from app.controllers.resume_renderer import ResumeRendererController
 from app.controllers.cl_generator import CoverLetterGeneratorController
+from app.controllers.cl_renderer import CoverLetterRendererController
 import re
+from typing import Optional
 
 # TODO: tmp storage --> use opensearch later on (close to production)
 resume_storage = {} #key is uuiid, val is filepath
@@ -29,6 +31,7 @@ cl_storage = {}
 logger = LoggerConfig().get_logger(__name__)
 
 UPLOADED_RESUME_PATH = os.getenv("UPLOADED_RESUME_PATH")
+UPLOADED_CL_PATH = os.getenv("UPLOADED_CL_PATH")
 COSINE_THRESHOLD = float(os.getenv("COSINE_THRESHOLD")) #TODO: possibly remove
 SOFT_COSINE_THRESHOLD = float(os.getenv("SOFT_COSINE_THRESHOLD"))
 
@@ -111,17 +114,60 @@ async def upload_resume(file: UploadFile):
     except Exception as e:
         return JSONResponse(status_code=500, content={"message": f"An error occurred: {str(e)}"})
 
+@app.post(
+    "/upload-cover-letter",
+    tags = ["cover_letter"],
+    # response_model = str, #TODO
+    summary="Upload a cover letter DOCX file",
+    description="Upload a DOCX file containing cover letter content"
+    )
+async def upload_cover_letter(file: UploadFile):
+    """
+    Upload a cover letter DOCX file as prerequisite for cover letter rendering
+
+    Args:
+        file (UploadFile): cover letter DOCX file
+
+    Returns:
+        str: Uploaded file name
+    """
+    if file.content_type not in ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"]:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "message": "Invalid file type. Only DOCX files are allowed."
+                }
+                )
+
+    file_location = (Path(UPLOADED_CL_PATH) / file.filename).resolve()
+    #generate unique id for pdf or docx
+    _file_uid = str(uuid4())
+
+    try:
+        # save the uploaded file to the resume directory
+        with open(str(file_location), "wb") as f:
+            f.write(await file.read())
+        logger.info(f"Uploaded cover letter file: {file.filename}")
+        cl_storage[_file_uid] = str(file_location)
+        return JSONResponse(status_code=200, content = {
+            "message": "cover letter uploaded successfully",
+            "resumate_uuid": _file_uid
+            }
+            ) #TODO: response model
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"message": f"An error occurred: {str(e)}"})
+
 @app.get(
         "/current_resume_storage",
         tags=["resume_storage"], #TODO: this is using tmp storage
         summary="Get current resume storage",
         description="Get the current resume storage for internal testing purposes"
         )
-async def get_current_resume_storage():
+async def get_current_storage():
     """
     Returns the current state of the PDF or DOCX storage
     """
-    return JSONResponse(status_code=200, content=resume_storage)
+    return JSONResponse(status_code=200, content={"resume": resume_storage, "cover_letter": cl_storage})
 
 @app.post(
     "/scrape",
@@ -154,6 +200,12 @@ async def scrape_url(
         default="generic",
         description="Job ID",
         example="123456"
+    ),
+    cl_uuid = Query(
+        default = None
+    ),
+    contact_name: str = Query(
+        default = None,
     )
 ):
     """
@@ -191,8 +243,21 @@ async def scrape_url(
 
                 #TODO: figure out the optional cover letter here - how can we determine if the cl should be rendered?
                 resume_generator_task = ResumeGeneratorController(resume_data, job_data).generate_content()
-                cl_keyword_extractor_task = CoverLetterGeneratorController(job_loader.file_path).process()
-                resume_content, cl_keyword_md = await asyncio.gather(resume_generator_task, cl_keyword_extractor_task)
+
+                if cl_uuid in cl_storage:
+                    cl_keyword_extractor_task = CoverLetterGeneratorController(job_loader.file_path).process()
+                    resume_content, cl_keyword_md = await asyncio.gather(resume_generator_task, cl_keyword_extractor_task)
+
+                    #then render cover letter as well
+                    cl_renderer = CoverLetterRendererController(
+                        cl_path = cl_storage[cl_uuid],
+                        soft_cos_score= semantic_scores["soft_cosine_similarity"],
+                        md_info = cl_keyword_md,
+                        contact_name= contact_name,
+                        source_name = "cl_" + job_loader.source_type,
+                        )
+
+                    cl_renderer.execute()
 
                 #TODO: cover letter and resume renderers should be async
                 resume_renderer = ResumeRendererController(
