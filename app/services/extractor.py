@@ -2,8 +2,8 @@
 This file contains the applications API
 authors: Erin Hwang
 """
-import deepsearch as ds
-from deepsearch.documents.core.export import export_to_markdown
+# import deepsearch as ds
+# from deepsearch.documents.core.export import export_to_markdown
 from typing import Optional, Iterator
 from pathlib import Path
 from dotenv import load_dotenv
@@ -22,69 +22,69 @@ from app.utils.logger import LoggerConfig
 from app.utils.prompt_loader import initialize_prompt
 import asyncio
 
-CHAT_MODEL = os.getenv("CHAT_MODEL")
-class PDFExtractorDeepSearch:
-    # TODO: add args and retuns in docstring
-    """Convert PDF files to markdown using DeepSearch Developed by IBM Research"""
+# CHAT_MODEL = os.getenv("CHAT_MODEL")
+# class PDFExtractorDeepSearch:
+#     # TODO: add args and retuns in docstring
+#     """Convert PDF files to markdown using DeepSearch Developed by IBM Research"""
 
-    def __init__(
-        self,
-        file_path: str,
-        deepsearch_project_id: Optional[str] = "1234567890abcdefghijklmnopqrstvwyz123456",
-    ):
+#     def __init__(
+#         self,
+#         file_path: str,
+#         deepsearch_project_id: Optional[str] = "1234567890abcdefghijklmnopqrstvwyz123456",
+#     ):
 
-        self.ds = ds
-        self.export_to_markdown = export_to_markdown
-        self.file_path = Path(file_path).resolve()
-        self.api = self.ds.cps.client.api.CpsApi.from_env()
-        self.deepsearch_project_id = deepsearch_project_id
-        self.logger = LoggerConfig().get_logger(__name__)
+#         self.ds = ds
+#         self.export_to_markdown = export_to_markdown
+#         self.file_path = Path(file_path).resolve()
+#         self.api = self.ds.cps.client.api.CpsApi.from_env()
+#         self.deepsearch_project_id = deepsearch_project_id
+#         self.logger = LoggerConfig().get_logger(__name__)
 
-    @LoggerConfig().log_execution
-    def lazy_load(self):
+#     @LoggerConfig().log_execution
+#     def lazy_load(self):
 
-        # yield self._ds_parse(self.file_path)
-        _file_name = str(self.file_path).split("/")[-1]
-        self.logger.info(f"Creating markdown from PDF using DeepSearch on file {_file_name}...")
-        return self._ds_parse(self.file_path)
+#         # yield self._ds_parse(self.file_path)
+#         _file_name = str(self.file_path).split("/")[-1]
+#         self.logger.info(f"Creating markdown from PDF using DeepSearch on file {_file_name}...")
+#         return self._ds_parse(self.file_path)
 
-    def _ds_parse(self, filepath):
-        try:
-            temp_dir = mkdtemp()
-            self.logger.info(f"Converting PDF using DeepSearch...")
-            self.ds.convert_documents(
-                api=self.api,
-                proj_key=self.deepsearch_project_id,
-                source_path=filepath,
-                progress_bar=True,
-            ).download_all(result_dir=temp_dir)
+#     def _ds_parse(self, filepath):
+#         try:
+#             temp_dir = mkdtemp()
+#             self.logger.info(f"Converting PDF using DeepSearch...")
+#             self.ds.convert_documents(
+#                 api=self.api,
+#                 proj_key=self.deepsearch_project_id,
+#                 source_path=filepath,
+#                 progress_bar=True,
+#             ).download_all(result_dir=temp_dir)
 
-            self._unzip(temporary_directory=temp_dir)
-            doc_md_str = self._export_to_markdown(temporary_directory=temp_dir)
-            self.logger.info(f"Successfully converted to markdown")
-            return doc_md_str
-        except Exception as e:
-            raise Exception(str(e))
-        finally:
-            # cleanup temp file and directory
-            for filename in os.listdir(temp_dir):
-                os.remove(os.path.join(temp_dir, filename))
-            os.rmdir(temp_dir)
+#             self._unzip(temporary_directory=temp_dir)
+#             doc_md_str = self._export_to_markdown(temporary_directory=temp_dir)
+#             self.logger.info(f"Successfully converted to markdown")
+#             return doc_md_str
+#         except Exception as e:
+#             raise Exception(str(e))
+#         finally:
+#             # cleanup temp file and directory
+#             for filename in os.listdir(temp_dir):
+#                 os.remove(os.path.join(temp_dir, filename))
+#             os.rmdir(temp_dir)
 
-    def _unzip(self, temporary_directory):
-        for fn in os.listdir(temporary_directory):
-            if fn.endswith("zip"):
-                fp_zip_str = os.path.join(temporary_directory, fn)
-                with zipfile.ZipFile(fp_zip_str, "r") as fp_zip:
-                    fp_zip.extractall(temporary_directory)
-        self.logger.info(f"Unzipped DeepSearch results from tmp")
+#     def _unzip(self, temporary_directory):
+#         for fn in os.listdir(temporary_directory):
+#             if fn.endswith("zip"):
+#                 fp_zip_str = os.path.join(temporary_directory, fn)
+#                 with zipfile.ZipFile(fp_zip_str, "r") as fp_zip:
+#                     fp_zip.extractall(temporary_directory)
+#         self.logger.info(f"Unzipped DeepSearch results from tmp")
 
-    def _export_to_markdown(self, temporary_directory):
-        for fn in glob.glob(os.path.join(temporary_directory, "**json")):
-            with open(fn, "r", encoding="utf-8") as json_fp:
-                searched_documents = json.load(json_fp)
-            doc_md = self.export_to_markdown(searched_documents)
-            return {"tmp_source": fn, "doc_md": doc_md}
+#     def _export_to_markdown(self, temporary_directory):
+#         for fn in glob.glob(os.path.join(temporary_directory, "**json")):
+#             with open(fn, "r", encoding="utf-8") as json_fp:
+#                 searched_documents = json.load(json_fp)
+#             doc_md = self.export_to_markdown(searched_documents)
+#             return {"tmp_source": fn, "doc_md": doc_md}
 
 def read_pdf_sync(file_path: Path):
     """Extract text from a PDF file."""
