@@ -4,7 +4,6 @@ beautifulsoup4==4.12.3
 fastapi==0.109.2
 uvicorn==0.27.1
 pydantic==2.10.3
-openai==1.55.3
 pdfkit==1.0.0
 PyPDF2==3.0.1
 backoff==2.2.1

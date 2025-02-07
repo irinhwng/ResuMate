@@ -14,12 +14,6 @@ else
     exit 1
 fi
 
-# Check for DS API KEY
-if [ -z "$DEEPSEARCH_API_KEY" ]; then
-    echo "DEEPSEARCH_API_KEY is not set. Exiting."
-    exit 1
-fi
-
 # Ensure pyenv is initialized
 if ! command -v pyenv &> /dev/null; then
     echo "pyenv is not installed or not in PATH. Please install pyenv first."
@@ -59,18 +53,6 @@ if [ -f "$REQUIREMENTS_FILE" ]; then
     pip install --upgrade pip
     pip install -r "$REQUIREMENTS_FILE"
     echo "Dependencies installed successfully."
-
-    echo "Configuring DeepSearch profile..."
-    if deepsearch profile config --profile-name "ds-experience" \
-        --host "https://deepsearch-experience.res.ibm.com/" \
-        --no-verify-ssl \
-        --username "hwangeee123@gmail.com" \
-        --api-key "$DEEPSEARCH_API_KEY"; then
-        echo "DeepSearch profile configured successfully."
-    else
-        echo "Failed to configure DeepSearch profile."
-        exit 1
-    fi
 else
     echo "No $REQUIREMENTS_FILE found. Skipping dependency installation."
 fi
