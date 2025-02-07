@@ -24,9 +24,9 @@ from app.controllers.cl_renderer import CoverLetterRendererController
 import re
 from typing import Optional
 
-# TODO: tmp storage --> use opensearch later on (close to production)
-resume_storage = {} #key is uuiid, val is filepath
-cl_storage = {}
+# TODO:tmp storage --> use opensearch later on (close to production)
+resume_storage = {"erin": "/Users/erinhwang/Projects/ResuMate/data/uploaded_resumes/thee_resume_rendrr.docx"} #key is uuiid, val is filepath
+cl_storage = {"erin": "/Users/erinhwang/Projects/ResuMate/data/uploaded_cls/thee_cover_letter_rendrrr.docx"}
 
 logger = LoggerConfig().get_logger(__name__)
 
@@ -244,7 +244,7 @@ async def scrape_url(
                 #TODO: figure out the optional cover letter here - how can we determine if the cl should be rendered?
                 resume_generator_task = ResumeGeneratorController(resume_data, job_data).generate_content()
 
-                if cl_uuid in cl_storage:
+                if cl_uuid in cl_storage and cl_uuid is not None:
                     cl_keyword_extractor_task = CoverLetterGeneratorController(job_loader.file_path).process()
                     resume_content, cl_keyword_md = await asyncio.gather(resume_generator_task, cl_keyword_extractor_task)
 
@@ -258,6 +258,8 @@ async def scrape_url(
                         )
 
                     cl_renderer.execute()
+                else:
+                    resume_content = await resume_generator_task
 
                 #TODO: cover letter and resume renderers should be async
                 resume_renderer = ResumeRendererController(
