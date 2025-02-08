@@ -22,7 +22,8 @@ from app.utils.logger import LoggerConfig
 from app.utils.prompt_loader import initialize_prompt
 import asyncio
 
-# CHAT_MODEL = os.getenv("CHAT_MODEL")
+CHAT_MODEL = os.getenv("CHAT_MODEL")
+
 # class PDFExtractorDeepSearch:
 #     # TODO: add args and retuns in docstring
 #     """Convert PDF files to markdown using DeepSearch Developed by IBM Research"""
