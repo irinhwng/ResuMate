@@ -203,7 +203,7 @@ class ResumeRendererController:
         self.remove_paragraphs(all_paragraphs, strict_removal_indices)
         all_paragraphs = doc.paragraphs
 
-        #2.2 find indices to remove that are bullet points then only keep the first x
+        #2.2find indices to remove that are bullet points then only keep the first x
         removal_indices = self.return_indices_to_remove(
             upper_placement + 1, all_paragraphs, "LEFT (0)", next_section_name
             )
