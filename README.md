@@ -1,10 +1,10 @@
 # ResuMate 🚀
 
 ### The Need 💼
-Let's be honest, the job market can be brutal. Regardless of the number of tips and tricks to entice recruiters, the act of implementing this process takes a lot of time for the applicant.
+Let's be honest, the job market can be brutal. Regardless of the number of tips and tricks applicants use on their resume to entice recruiters, the act of implementing this process takes a lot of time.
 
 ### Overview 🌟
-ResuMate is an innovative tool designed to streamline the job application process by generting the resume and cover letter through the automated process of job list scraping and semantic analysis. But before this execution occurs, ResuMate will determine if applicant's base resume has a semantic similarity to the job listing posting.
+ResuMate is an advanced tool that simplifies the job application process by automating resume and cover letter generation through job listing scraping, semantic analysis, and GenAI-powered content creation. Before generating application materials, ResuMate first evaluates the semantic similarity between the applicant's base resume and the job listing to ensure relevance.
 
 ### Features ✨
 - **Automated Resume and Cover Letter Generation** 📝
