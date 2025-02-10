@@ -45,12 +45,20 @@ class CoverLetterRendererController:
 
     def align_text(self):
         """Cleanse the markdown prefix and suffix text"""
+        final = {}
         keys = ["[CompanyName]", "[CityState]", "[PositionName]"]
         cleansed_text = self.md_info.replace("```markdown", "").replace("```", "").strip()
-        split_text = self.keyword_splitter.split_text(cleansed_text)
-        assert len(split_text) == 3, "Cover letter md output does not contain 3 headers"
-        keywords = [each.metadata["header"] for each in split_text]
-        final = {each[0]:each[1] for each in list(zip(keys, keywords))}
+        splits = self.keyword_splitter.split_text(cleansed_text)
+        assert len(splits) == 3, "Cover letter md output does not contain 3 headers"
+        keywords = [each.metadata["header"] for each in splits]
+
+        for each in list(zip(keys, keywords)):
+            if "Not Available" in each[1]:
+                final[each[0]] = ""
+            else:
+                final[each[0]] = each[1]
+
+
         return final
 
     def cleanse_user_input(self):

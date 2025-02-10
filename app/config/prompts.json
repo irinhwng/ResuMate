@@ -32,7 +32,7 @@
 {
     "prompt_name": "cl_keyword_extractor",
     "description": "extracts the primary keyword information to render the cover letter",
-    "prompt_value": "Your task is to extract the following information verabtim from the primary job listing. If any section or similar section is missing, explicitly state 'Not Available'. Output this extracted information in Markdown following this template:\n```markdown\n# Company Name\n# City, State\n# Position Name\n```\nEnsure the output contains the required information for one primary job listing in a single Markdown file and retains the exact wording from the resume. Here is the job resume:\n{input_data}",
+    "prompt_value": "Your task is to extract the following information verabtim from the primary job listing. If any section or similar section is missing, explicitly state 'City, State Not Available' as an example. Output this extracted information in Markdown following this template:\n```markdown\n# Company Name\n# City, State\n# Position Name\n```\nEnsure the output contains the required information for one primary job listing in a single Markdown file and retains the exact wording from the resume. If multiple locations exist, prioritize New York. Here is the job resume:\n{input_data}",
     "input_parameters": ["input_data"]
 },
 {
