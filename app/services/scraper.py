@@ -135,7 +135,8 @@ class JobScraperService:
                 "#consent_agree",  # Direct ID selector
                 "button.consent-agree",  # Class-based selector
                 "button[data-action*='acceptCookies']",  # Attribute-based selector
-                "button[type='button'][data-bs-dismiss='modal']"
+                "button[type='button'][data-bs-dismiss='modal']",
+                "#survale-survey-dialog-close"
             ]
 
             # Try each selector

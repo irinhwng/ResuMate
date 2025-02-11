@@ -5,7 +5,7 @@ authors: Erin Hwang
 import os
 import asyncio
 from fastapi import FastAPI, Query, HTTPException, File, UploadFile
-from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.docs import get_swagger_ui_html #remove later
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from pydantic import HttpUrl
@@ -274,10 +274,10 @@ async def scrape_url(
                 logger.info("Semantic similarity threshold NOT met:\n\t%s", semantic_scores)
                 #TODO: maybe add a response that says "not enough similarity"
                 return {
-                    "status": "success",
+                    "status": "Semantic similarity threshold NOT met",
                     "url": str(url),
-                    "content": job_data,
-                    "semantic_similarity": semantic_scores
+                    # "content": semantic_scores["soft_cosine_similarity"],
+                    # "semantic_similarity": semantic_scores
                 }
             return {
                 "status": "success",
@@ -297,7 +297,7 @@ async def scrape_url(
             status_code=500,
             detail={
                 "status": "error",
-                "message": str(e)
+                "message": str(e) #this may be json encodable
             }
         )
 
@@ -306,4 +306,4 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "online"}
 
-#TODO: checks if making calls is even worth it? lets not waste ppls time
+#TODO: checks if making calls is even worth it? lets not waste ppls time........
