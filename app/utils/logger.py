@@ -38,7 +38,7 @@ class LoggerConfig:
             duration = time.time() - start
             self.logger.info(f"Completed {operation} in {duration:.2f}s")
         except Exception as e:
-            self.logger.error(f"Failed {operation}: {str(e)}")
+            self.logger.error(f"Failed {operation}: {str(e)}", exc_info=True)
             raise
 
     def log_execution(self, func: Callable) -> Callable:
@@ -52,7 +52,7 @@ class LoggerConfig:
                 logger.debug(f"Completed {func.__name__}")
                 return result
             except Exception as e:
-                logger.error(f"Error in {func.__name__}: {str(e)}")
+                logger.error(f"Error in {func.__name__}: {str(e)}", exc_info=True)
                 raise
         return wrapper
 
