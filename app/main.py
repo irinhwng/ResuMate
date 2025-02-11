@@ -244,10 +244,10 @@ async def scrape_url(
                 #TODO: figure out the optional cover letter here - how can we determine if the cl should be rendered?
                 resume_generator_task = ResumeGeneratorController(resume_data, job_data).generate_content()
 
-                if cl_uuid in cl_storage and cl_uuid is not None:
-                    cl_keyword_extractor_task = CoverLetterGeneratorController(job_loader.file_path).process()
-                    resume_content, cl_keyword_md = await asyncio.gather(resume_generator_task, cl_keyword_extractor_task)
+                cl_keyword_extractor_task = CoverLetterGeneratorController(job_loader.file_path).process()
+                resume_content, cl_keyword_md = await asyncio.gather(resume_generator_task, cl_keyword_extractor_task)
 
+                if cl_uuid in cl_storage and cl_uuid is not None:
                     #then render cover letter as well
                     cl_renderer = CoverLetterRendererController(
                         cl_path = cl_storage[cl_uuid],
@@ -258,12 +258,13 @@ async def scrape_url(
                         )
 
                     cl_renderer.execute()
-                else:
-                    resume_content = await resume_generator_task
 
-                #TODO: cover letter and resume renderers should be async
+                #TODO: add cl keyword (only position name here)
                 resume_renderer = ResumeRendererController(
-                    resume_storage[resumate_uuid], resume_content, job_loader.source_type
+                    resume_path=resume_storage[resumate_uuid],
+                    generated_content=resume_content,
+                    source_name = job_loader.source_type,
+                    md_info = cl_keyword_md
                     )
 
                 resume_renderer.execute()

@@ -19,6 +19,11 @@ class ResumeRendererController:
         "core_expertise": r"(Core Expertise: )(.*)",
         "technical_snapshot": r"(Technical Snapshot: )(.*)",
         }
+
+    pattern = r"\[[^\[\]]*\]"
+    start_pattern = r"\[(?![^\[\]]*\])[^]]*$"
+    end_pattern = r"^(?!.*?\[[^\[\]]*\]).*?\]"
+    middle_pattern = r"^[^\[\]]*$"
     """
     Render a resume from a template and extracted content
 
@@ -30,7 +35,7 @@ class ResumeRendererController:
         #TODO: figure this out
     """
 
-    def __init__(self, resume_path: str, generated_content: dict, source_name:str):
+    def __init__(self, resume_path: str, generated_content: dict, source_name:str, md_info: str):
         self.logger = LoggerConfig().get_logger(__name__)
         self.source_name = source_name
         self.data_dir = GENERATED_RESUME_PATH
@@ -40,6 +45,27 @@ class ResumeRendererController:
             headers_to_split_on=[("#", "keywords"),],
             strip_headers=True)
 
+        self.cl_keyword_splitter = MarkdownHeaderTextSplitter(
+            headers_to_split_on=[("#", "header"),],
+            strip_headers=False)
+
+        self.md_info = md_info
+
+    def align_text(self):
+        """Cleanse the markdown prefix and suffix text"""
+        final = {}
+        keys = ["[CompanyName]", "[CityState]", "[PositionName]"]
+        cleansed_text = self.md_info.replace("```markdown", "").replace("```", "").strip()
+        splits = self.cl_keyword_splitter.split_text(cleansed_text)
+        assert len(splits) == 3, "Cover letter md output does not contain 3 headers"
+        keywords = [each.metadata["header"] for each in splits]
+
+        for each in list(zip(keys, keywords)):
+            if "Not Available" in each[1]:
+                final[each[0]] = ""
+            else:
+                final[each[0]] = each[1]
+        return final
 
     def cleanse_text(self, text: str):
         """Cleanse the markdown prefix and suffix text"""
@@ -225,11 +251,90 @@ class ResumeRendererController:
             "\tRendered %s bullet points for position title: %s", str(x), current_section_name
             )
 
+    def edit_paragraphs(self, all_paragraphs, i_edit_list: list[int], content_dict: dict):
+        cleansed_content = content_dict
+        for i_par_edit in i_edit_list:
+            # print(i_par_edit)
+            par = all_paragraphs[i_par_edit]
+            # print(f"Paragraph {i_par} text:\n{par.text}\n-Here are the runs:")
+
+            full_matches = []
+            start_matches = []
+            end_matches = []
+            middle_matches = []
+
+
+
+            for i_run, run in enumerate(par.runs):
+                # print(run.text)
+                full_match = [(i_run, val) for val in re.findall(self.pattern, run.text)]
+                full_matches.extend(full_match)
+                start_match =  [(i_run, val) for val in re.findall(self.start_pattern, run.text)]
+                start_matches.extend(start_match)
+                end_match =  [(i_run, val) for val in re.findall(self.end_pattern, run.text)]
+                end_matches.extend(end_match)
+                if full_match or start_match:
+                    middle_match = [(i_run, val) for val in re.findall(self.middle_pattern, run.text)]
+                    middle_matches.extend(middle_match)
+
+            if full_matches:
+                # print("here")
+                # print(full_matches)
+                for each_full_match in full_matches:
+                    # print(each_full_match[0])
+                    all_paragraphs[i_par_edit].runs[each_full_match[0]].text = all_paragraphs[i_par_edit].runs[each_full_match[0]].text.replace(each_full_match[1], cleansed_content[each_full_match[1]])
+                    all_paragraphs[i_par_edit].runs[each_full_match[0]].font.name = "Calibri"
+                    all_paragraphs[i_par_edit].runs[each_full_match[0]].font.size = 133350
+
+            if start_matches:
+                assert len(start_matches) == len(end_matches)
+
+                i_curr = 0
+                for start, end in zip(start_matches, end_matches):
+
+                    i_start = start[0]
+                    val_start = start[1]
+
+                    i_end = end[0]
+                    val_end = end[1]
+
+                    curr_middle_match = None if len(middle_matches) == 0 else middle_matches[i_curr]
+
+                    if i_end - i_start >= 2:
+                        assert curr_middle_match is not None
+                        determined_term = val_start + curr_middle_match[1] + val_end
+                        all_paragraphs[i_par_edit].runs[curr_middle_match[0]].text = all_paragraphs[i_par_edit].runs[curr_middle_match[0]].text.replace(curr_middle_match[1], "")
+
+                        all_paragraphs[i_par_edit].runs[curr_middle_match[0]].font.name = "Calibri"
+                        all_paragraphs[i_par_edit].runs[curr_middle_match[0]].font.size = 133350
+                    else:
+                        assert curr_middle_match is None
+                        determined_term = val_start + val_end
+
+                    # for
+                    i_curr += 1
+
+                    #replacing at the run where [ is first found
+                    all_paragraphs[i_par_edit].runs[i_start].text = all_paragraphs[i_par_edit].runs[i_start].text.replace(val_start, cleansed_content[determined_term])
+                    # all_paragraphs[i_par_edit].runs[each_full_match[0]].font.name = "Calibri"
+                    # all_paragraphs[i_par_edit].runs[each_full_match[0]].font.size = 133350
+
+                    #replace at the run where ] is found
+                    all_paragraphs[i_par_edit].runs[i_end].text = all_paragraphs[i_par_edit].runs[i_end].text.replace(val_end, "")
+                    # all_paragraphs[i_par_edit].runs[each_full_match[0]].font.name = "Calibri"
+                    # all_paragraphs[i_par_edit].runs[each_full_match[0]].font.size = 133350
+
     @LoggerConfig().log_execution
     def execute(self):
         """Execute resume rendering process"""
+        cleansed_cl_keywords = self.align_text()
 
         doc = Document(self.resume_path)
+        #replace [Keywords] with the actual keyword
+        i_pars_to_edit = [i_par for i_par, par in enumerate(doc.paragraphs) if par.text.__contains__("[")]
+        self.edit_paragraphs(doc.paragraphs, i_pars_to_edit, cleansed_cl_keywords)
+        self.logger.info("Keywords have been rendered")
+
         cleansed_content = self.cleanse_generated_content()
         previous_titles = [name for name in list(cleansed_content) if ' ' in name]
 

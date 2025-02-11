@@ -138,24 +138,24 @@ class CoverLetterRendererController:
                         determined_term = val_start + curr_middle_match[1] + val_end
                         all_paragraphs[i_par_edit].runs[curr_middle_match[0]].text = all_paragraphs[i_par_edit].runs[curr_middle_match[0]].text.replace(curr_middle_match[1], "")
 
-                        all_paragraphs[i_par_edit].runs[each_full_match[0]].font.name = "Calibri"
-                        all_paragraphs[i_par_edit].runs[each_full_match[0]].font.size = 133350
+                        all_paragraphs[i_par_edit].runs[curr_middle_match[0]].font.name = "Calibri"
+                        all_paragraphs[i_par_edit].runs[curr_middle_match[0]].font.size = 133350
                     else:
                         assert curr_middle_match is None
-                        determined_term = val_start + val_start
+                        determined_term = val_start + val_end
 
                     # for
                     i_curr += 1
 
                     #replacing at the run where [ is first found
                     all_paragraphs[i_par_edit].runs[i_start].text = all_paragraphs[i_par_edit].runs[i_start].text.replace(val_start, cleansed_content[determined_term])
-                    all_paragraphs[i_par_edit].runs[each_full_match[0]].font.name = "Calibri"
-                    all_paragraphs[i_par_edit].runs[each_full_match[0]].font.size = 133350
+                    all_paragraphs[i_par_edit].runs[i_start].font.name = "Calibri"
+                    all_paragraphs[i_par_edit].runs[i_start].font.size = 133350
 
                     #replace at the run where ] is found
                     all_paragraphs[i_par_edit].runs[i_end].text = all_paragraphs[i_par_edit].runs[i_end].text.replace(val_end, "")
-                    all_paragraphs[i_par_edit].runs[each_full_match[0]].font.name = "Calibri"
-                    all_paragraphs[i_par_edit].runs[each_full_match[0]].font.size = 133350
+                    all_paragraphs[i_par_edit].runs[i_end].font.name = "Calibri"
+                    all_paragraphs[i_par_edit].runs[i_end].font.size = 133350
 
 
     @LoggerConfig().log_execution
