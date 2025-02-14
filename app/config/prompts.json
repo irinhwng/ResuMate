@@ -44,7 +44,7 @@
 {
     "prompt_name": "professional_summary",
     "description": "main professional summary at the start of the resume",
-    "prompt_value": "You are tasked with creating a professional summary that is 1-2 sentences. A professional summary demonstrates the unique value to a potential employer. This summary must show as much of the desired experience and skills as possible. Review the applicant's resume data to gain the contextual information of the applicant's skills. Next, review the job listing responsibilities of interest and highlight any key phrases. Next, weave these key phrases into the baseline professional summary. Don't make this section too bulky, but make sure to show off the top qualifications.\nPlease consider the following information:\n\n\n- **Applicant’s Resume Data**: {professional_data}\n\n\n- **Baseline Professional Summary**: {base_section}\n\n\n- **Job Listing Responsibilities**: {job_data}\n\nTake your time to produce high-quality results that follow the given tasks.\n",
+    "prompt_value": "Create a professional summary in 30-50 words that highlights the applicant's unique value. Use key phrases from the job listing and showcase top qualifications concisely. Reference the applicant's resume for context, ensuring the summary is impactful, succinct, and effectively aligns with the job requirements.\nPlease consider the following information:\n\n\n- **Applicant’s Resume Data**: {professional_data}\n\n\n- **Baseline Professional Summary**: {base_section}\n\n\n- **Job Listing Responsibilities**: {job_data}\n\nTake your time to produce high-quality results that follow the given tasks.\n",
     "input_parameters": ["job_data", "professional_data", "base_section"]
 },
 {
