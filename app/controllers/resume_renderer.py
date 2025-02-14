@@ -374,6 +374,7 @@ class ResumeRendererController:
         docx_fp = os.path.abspath(docx_fp)
         doc.save(docx_fp)
         self.logger.info(f"Resume rendered successfully at: {docx_fp}")
+        return f"{self.data_dir}/{self.source_name}.docx"
 
 
 

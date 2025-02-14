@@ -181,7 +181,7 @@ class CoverLetterRendererController:
 
         doc.save(docx_fp)
         self.logger.info(f"Successfully saved cover letter at:\n\t\t{self.data_dir}/{self.source_name}.docx")
-
+        return f"{self.data_dir}/{self.source_name}.docx"
 
 if __name__ == "__main__":
     t_cl_path = "/Users/erinhwang/Projects/ResuMate/experiments/base_docs/thee_cover_letter_rendrrr.docx"
