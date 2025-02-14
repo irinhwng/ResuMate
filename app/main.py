@@ -257,7 +257,9 @@ async def scrape_url(
                         source_name = "cl_" + job_loader.source_type,
                         )
 
-                    cl_renderer.execute()
+                    cl_fp = cl_renderer.execute()
+                else:
+                    cl_fp = "No cover letter rendered"
 
                 #TODO: add cl keyword (only position name here)
                 resume_renderer = ResumeRendererController(
@@ -267,7 +269,7 @@ async def scrape_url(
                     md_info = cl_keyword_md
                     )
 
-                resume_renderer.execute()
+                resume_fp =resume_renderer.execute()
 
 
 
@@ -277,13 +279,14 @@ async def scrape_url(
                 return {
                     "status": "Semantic similarity threshold NOT met",
                     "url": str(url),
-                    # "content": semantic_scores["soft_cosine_similarity"],
+                    # "content": semantic_scores["soft_cosine_similarity"], #figure out how to raise this.. jsondecode error
                     # "semantic_similarity": semantic_scores
                 }
             return {
                 "status": "success",
                 "url": str(url),
-                "content": job_data
+                "resume_filepath": resume_fp,
+                "cover_letter_filepath": cl_fp,
             }
         else:
             return JSONResponse(
