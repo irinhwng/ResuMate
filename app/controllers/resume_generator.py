@@ -42,7 +42,9 @@ class ResumeGeneratorController:
         sections = self.splitter.split_text(self.resume_data)
         results = {}
         for section in sections:
-            if section.page_content.startswith("# Core Expertise"):
+            if section.page_content.startswith("# Professional Summary"):
+                results["professional_summary"] = section.page_content
+            elif section.page_content.startswith("# Core Expertise"):
                 results["core_expertise"] = section.page_content
             elif section.page_content.startswith("# Technical Snapshot"):
                 results["technical_snapshot"] = section.page_content
@@ -84,7 +86,15 @@ class ResumeGeneratorController:
                     "n_words": n_words
                     }
                 tasks[prompt_name] = asyncio.create_task(service.send_request(**kwargs))
-                self.logger.info("Creating generation task for %s", prompt_name)
+
+            elif prompt_name == "professional_summary":
+                kwargs = {
+                    "job_data": self.job_data,
+                    "professional_data": professional_data,
+                    "base_section": base_section
+                }
+                tasks[prompt_name] = asyncio.create_task(service.send_request(**kwargs))
+
             elif prompt_name == "professional_experience":
                 # iterate over each section in professional experience
                 for idx, exp_section in enumerate(base_section, start=1):
@@ -96,7 +106,7 @@ class ResumeGeneratorController:
                         "n_bullets": n_bullets
                     }
                     tasks[task_name] = asyncio.create_task(service.send_request(**kwargs))
-                    self.logger.info("Creating generation task for %s", task_name)
+
             else:
                 self.logger.error(
                     "Prompt name %s not found - ensure prompt %s exists in the config file",
@@ -104,6 +114,8 @@ class ResumeGeneratorController:
                     prompt_name
                     )
                 raise ValueError("Prompt name %s not found", prompt_name)
+
+            self.logger.info("Creating generation task for %s", prompt_name)
 
         responses = await asyncio.gather(*tasks.values())
         results = {section: result for section, result in zip(tasks.keys(),responses)}

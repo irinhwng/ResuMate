@@ -324,6 +324,16 @@ class ResumeRendererController:
                     # all_paragraphs[i_par_edit].runs[each_full_match[0]].font.name = "Calibri"
                     # all_paragraphs[i_par_edit].runs[each_full_match[0]].font.size = 133350
 
+    def render_summary(self, doc: Document, summary_str: str):
+        #find the run that contains the text
+        for i_par, paragraph in enumerate(doc.paragraphs):
+            for i_run, run in enumerate(paragraph.runs):
+                if run.text.__contains__("As a multitalented Data Scientist"):
+                    #overwrite the run text with summary str
+                    doc.paragraphs[i_par].runs[i_run].text = summary_str
+                    return
+
+
     @LoggerConfig().log_execution
     def execute(self):
         """Execute resume rendering process"""
@@ -337,7 +347,8 @@ class ResumeRendererController:
 
         cleansed_content = self.cleanse_generated_content()
         previous_titles = [name for name in list(cleansed_content) if ' ' in name]
-
+        #add render professional summary here
+        self.render_summary(doc, cleansed_content["professional_summary"])
         self.render_keywords(doc, "core_expertise", cleansed_content["core_expertise"])
         self.render_keywords(doc, "technical_snapshot", cleansed_content["technical_snapshot"])
 
