@@ -37,6 +37,7 @@ class JobListingLoader:
         self.logger.info(f"Creating PDF from URL listing...")
         pdf_path = await self.scraper.execute(str(url), self.source_type)
         return pdf_path
+        # return "/Users/erinhwang/Projects/ResuMate/data/job_listings/Humana_Senior_DS_001.pdf"
 
     async def _extract_pdf(self, pdf_path: str):
         """Extract job listing content into str from a PDF file"""
