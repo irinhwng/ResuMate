@@ -15,38 +15,7 @@ ResuMate is an advanced tool that simplifies the job application process by auto
 
 ### Architecture Diagram
 
-```mermaid
-graph TD
-    %% User Input
-    A[User Uploads Resume & Job Posting URL] --> B[Extract Resume Text]
-    A --> C[Convert Job Posting URL to PDF (Selenium)]
-
-    %% Extract Job Posting Text
-    C --> D[Extract Job Posting Text (ChatGPT)]
-
-    %% Process Text Data
-    B --> E[Validate and Clean Resume Text]
-    D --> E[Validate and Clean Job Posting Text]
-
-    %% Semantic Scoring
-    E --> F[Calculate Semantic Similarity Score]
-    F --> G{Pass Threshold?}
-
-    %% Decision Making
-    G -- No --> H[Stop Process]
-    G -- Yes --> I[Generate Resume using GPT-4]
-
-    %% Resume Generation
-    I --> J[Render Resume as DOCX]
-    J --> K[Save Resume File]
-
-    %% External Components
-    D -.->|API Call| OpenAI[OpenAI GPT-4]
-    I -.->|API Call| OpenAI
-
-    %% Storage
-    K --> Storage[Save File to Local Folder]
-```
+![Alt text](./arch_diagram.svg)
 
 ### How It Works
 1. <u>Upload Resume</u>: Users can upload their resume in PDF or DOCX format using the /upload-resume endpoint. The uploaded file is stored and assigned a unique UUID.
