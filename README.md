@@ -15,7 +15,7 @@ ResuMate is an advanced tool that simplifies the job application process by auto
 
 ### Architecture Diagram
 
-![Alt text](https://github.com/irinhwng/ResuMate/blob/main/arch_diagram.svg)
+![Alt text](https://github.com/irinhwng/ResuMate/blob/main/arch_diagram.png)
 
 ### How It Works
 1. <u>Upload Resume</u>: Users can upload their resume in PDF or DOCX format using the /upload-resume endpoint. The uploaded file is stored and assigned a unique UUID.
