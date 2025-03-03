@@ -18,26 +18,26 @@ ResuMate is an advanced tool that simplifies the job application process by auto
 ```mermaid
 graph TD
     %% User Input
-    A[User Uploads Resume & Job Posting URL] -->|Resume (Docx)| B[Extract Resume Text]
-    A -->|Job Posting URL| C[Convert URL to PDF (Selenium)]
+    A[User Uploads Resume & Job Posting URL] --> B[Extract Resume Text]
+    A --> C[Convert Job Posting URL to PDF (Selenium)]
 
     %% Extract Job Posting Text
-    C -->|Extracted PDF| D[Extract Job Posting Text (ChatGPT)]
+    C --> D[Extract Job Posting Text (ChatGPT)]
 
     %% Process Text Data
-    B -->|Resume Text| E[Validate & Clean Text]
-    D -->|Job Posting Text| E
+    B --> E[Validate and Clean Resume Text]
+    D --> E[Validate and Clean Job Posting Text]
 
     %% Semantic Scoring
-    E -->|Validated Data| F[Calculate Semantic Similarity Score]
-    F -->|Score >= Threshold?| G{Pass?}
+    E --> F[Calculate Semantic Similarity Score]
+    F --> G{Pass Threshold?}
 
     %% Decision Making
     G -- No --> H[Stop Process]
     G -- Yes --> I[Generate Resume using GPT-4]
 
     %% Resume Generation
-    I --> J[Render Resume (Docx)]
+    I --> J[Render Resume as DOCX]
     J --> K[Save Resume File]
 
     %% External Components
@@ -45,7 +45,7 @@ graph TD
     I -.->|API Call| OpenAI
 
     %% Storage
-    K -->|Save File| Storage[Local Folder]
+    K --> Storage[Save File to Local Folder]
 ```
 
 ### How It Works
