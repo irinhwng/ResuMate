@@ -328,6 +328,7 @@ class ResumeRendererController:
         #find the run that contains the text
         for i_par, paragraph in enumerate(doc.paragraphs):
             for i_run, run in enumerate(paragraph.runs):
+                # TODO: must be changed if other want to use it - high priority
                 if run.text.__contains__("As a multitalented Data Scientist"):
                     #overwrite the run text with summary str
                     doc.paragraphs[i_par].runs[i_run].text = summary_str
@@ -370,11 +371,12 @@ class ResumeRendererController:
             i_curr += 1
 
         # self.render_professional_experience(doc, curr_section, next_section, upper, lower)
-        docx_fp = f"{self.data_dir}/{self.source_name}.docx" #ERIN
-        docx_fp = os.path.abspath(docx_fp)
+        docx_fp_str = f"{self.data_dir}/{self.source_name}.docx" #ERIN
+        docx_fp = os.path.abspath(docx_fp_str)
         doc.save(docx_fp)
         self.logger.info(f"Resume rendered successfully at: {docx_fp}")
-        return f"{self.data_dir}/{self.source_name}.docx"
+
+        return docx_fp_str
 
 
 
