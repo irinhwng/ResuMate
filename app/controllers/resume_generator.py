@@ -48,6 +48,8 @@ class ResumeGeneratorController:
                 results["core_expertise"] = section.page_content
             elif section.page_content.startswith("# Technical Snapshot"):
                 results["technical_snapshot"] = section.page_content
+            # elif section.page_content.__contains__("## Independent AI Engineer"):
+            #     results["independent_experience"] = section.page_content
             else:
                 if "professional_experience" not in results:
                     results['professional_experience'] = [section.page_content]
@@ -99,13 +101,26 @@ class ResumeGeneratorController:
                 # iterate over each section in professional experience
                 for idx, exp_section in enumerate(base_section, start=1):
                     task_name = self.extract_title(exp_section)
-                    n_bullets = N_PRIMARY_BULLETS if "AI Center of Competence" in task_name else N_SECONDARY_BULLETS #TODO: highest priority if others are interested in usnig this
+                    #TODO: highest priority if others are interested in usnig this
+                    if "Security Software" in task_name:
+                        n_bullets = N_PRIMARY_BULLETS
+                    # elif "Independent" in task_name:
+                    #     n_bullets = "1" #TODO
+                    else:
+                        n_bullets = N_SECONDARY_BULLETS
                     kwargs = {
                         "job_data": self.job_data,
                         "base_section": exp_section,
                         "n_bullets": n_bullets
                     }
                     tasks[task_name] = asyncio.create_task(service.send_request(**kwargs))
+
+            # elif prompt_name == "independent_experience":
+            #     kwargs = {
+            #         "n_bullets": "2",
+            #         "base_section": base_section
+            #     }
+            #     tasks[prompt_name] = asyncio.create_task(service.send_request(**kwargs))
 
             else:
                 self.logger.error(
