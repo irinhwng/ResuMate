@@ -11,8 +11,6 @@ import os
 
 N_PRIMARY_BULLETS= os.getenv("N_PRIMARY_BULLETS")
 N_SECONDARY_BULLETS= os.getenv("N_SECONDARY_BULLETS")
-N_CORE_WORDS = os.getenv("N_CORE_WORDS")
-N_TECHNICAL_WORDS = os.getenv("N_TECHNICAL_WORDS")
 
 class ResumeGeneratorController:
     """
