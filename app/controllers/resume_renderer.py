@@ -9,6 +9,7 @@ from docx import Document
 import re
 import json
 import os
+import subprocess
 
 GENERATED_RESUME_PATH = os.getenv("GENERATED_RESUME_PATH")
 
@@ -326,13 +327,40 @@ class ResumeRendererController:
 
     def render_summary(self, doc: Document, summary_str: str):
         #find the run that contains the text
+
         for i_par, paragraph in enumerate(doc.paragraphs):
-            for i_run, run in enumerate(paragraph.runs):
-                # TODO: must be changed if other want to use it - high priority
-                if run.text.__contains__("As a multitalented Data Scientist"):
-                    #overwrite the run text with summary str
-                    doc.paragraphs[i_par].runs[i_run].text = summary_str
-                    return
+            if "As a multitalented Data Scientist" in paragraph.text:
+                is_overwritten = False
+
+                for i_run, run in enumerate(paragraph.runs):
+                    # TODO: must be changed if other want to use it - high priority
+                    if run.text.__contains__("As a multitalented Data Scientist"):
+                        #overwrite the run text with summary str
+                        doc.paragraphs[i_par].runs[i_run].text = summary_str
+                        is_overwritten = True
+                    elif is_overwritten:
+                        doc.paragraphs[i_par].runs[i_run].text = ""
+                return
+
+    def convert_resume_to_pdf(self, docx_fp_str: str):
+        generated_folder_p = os.path.dirname(docx_fp_str)
+        docx_filename_str = docx_fp_str.split("/")[-1]
+        try:
+            self.logger.info(f"Converting {docx_filename_str} to pdf...")
+            subprocess.run([
+                "/Applications/LibreOffice.app/Contents/MacOS/soffice", #TODO: could be cleaner
+                "--headless",
+                "--convert-to", "pdf:writer_pdf_Export",
+                "--outdir", generated_folder_p,
+                docx_fp_str
+                ], check = True)
+            self.logger.info(f"Successfully converted {docx_filename_str} to pdf")
+            return f"{generated_folder_p}/{docx_filename_str.replace('.docx', '.pdf')}"
+        except subprocess.CalledProcessError as e:
+            self.logger.error(f"Error converting {docx_filename_str} to pdf: {e}")
+            raise
+
+
 
 
     @LoggerConfig().log_execution
@@ -348,10 +376,6 @@ class ResumeRendererController:
 
         cleansed_content = self.cleanse_generated_content()
         previous_titles = [name for name in list(cleansed_content) if ' ' in name]
-        #add render professional summary here
-        self.render_summary(doc, cleansed_content["professional_summary"])
-        self.render_keywords(doc, "core_expertise", cleansed_content["core_expertise"])
-        self.render_keywords(doc, "technical_snapshot", cleansed_content["technical_snapshot"])
 
         self.logger.info("Rendering the professional experience...")
 
@@ -376,7 +400,9 @@ class ResumeRendererController:
         doc.save(docx_fp)
         self.logger.info(f"Resume rendered successfully at: {docx_fp}")
 
-        return docx_fp_str
+        pdf_fp_str = self.convert_resume_to_pdf(docx_fp_str)
+
+        return pdf_fp_str
 
 
 

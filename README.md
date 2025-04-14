@@ -27,3 +27,5 @@ ResuMate is an advanced tool that simplifies the job application process by auto
 
 ### How to Get Started
 (coming soon)
+- internal notes (pip install requirements text, ensure dirs exist, !brew install --cask libreoffice)
+- mention that the application has been tested vigorously on macOS (nothing else)
