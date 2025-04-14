@@ -158,7 +158,7 @@ class JobScraperService:
 
             # Save the rendered page as a PDF
             # Use a Chrome DevTools command for generating the PDF
-            pdf_path = f"{self.data_dir}/{source_type}.pdf"
+            pdf_path = f"{self.data_dir}/job_{source_type}.pdf"
             pdf_path = os.path.abspath(pdf_path)
 
             if self.driver == "chrome":
