@@ -26,8 +26,7 @@ class ResumeGeneratorController:
         self.resume_data = self.cleanse_text(resume_data)
         self.job_data = self.cleanse_text(job_data)
         self.splitter =  MarkdownHeaderTextSplitter(headers_to_split_on=[
-            ("#", "Core Expertise"), #TODO: bring it to config file?
-            ("#", "Technical Snapshot"),
+            # ("#", "Professional Sumary"),
             ("##", "Professional Experience")
             ], strip_headers=False)
 
@@ -39,20 +38,25 @@ class ResumeGeneratorController:
         """Split the markdown text into sections"""
         sections = self.splitter.split_text(self.resume_data)
         results = {}
+        # for section in sections:
+        #     if section.page_content.startswith("# Professional Summary"):
+        #         results["professional_summary"] = section.page_content
+        #     # elif section.page_content.startswith("# Core Expertise"):
+        #     #     results["core_expertise"] = section.page_content
+        #     # elif section.page_content.startswith("# Technical Snapshot"):
+        #     #     results["technical_snapshot"] = section.page_content
+        #     # elif section.page_content.__contains__("## Independent AI Engineer"):
+        #     #     results["independent_experience"] = section.page_content
+        #     else:
+        #         if "professional_experience" not in results:
+        #             results['professional_experience'] = [section.page_content]
+        #         else:
+        #             results["professional_experience"].append(section.page_content)
         for section in sections:
-            if section.page_content.startswith("# Professional Summary"):
-                results["professional_summary"] = section.page_content
-            elif section.page_content.startswith("# Core Expertise"):
-                results["core_expertise"] = section.page_content
-            elif section.page_content.startswith("# Technical Snapshot"):
-                results["technical_snapshot"] = section.page_content
-            # elif section.page_content.__contains__("## Independent AI Engineer"):
-            #     results["independent_experience"] = section.page_content
+            if "professional_experience" not in results:
+                        results['professional_experience'] = [section.page_content]
             else:
-                if "professional_experience" not in results:
-                    results['professional_experience'] = [section.page_content]
-                else:
-                    results["professional_experience"].append(section.page_content)
+                results["professional_experience"].append(section.page_content)
         professional_data = '\n\n'.join(results["professional_experience"])
         return results, professional_data
 
@@ -77,17 +81,7 @@ class ResumeGeneratorController:
             #define prompt kwargs here
             service = ChatGPTRequestService(prompt_name = prompt_name)
 
-            if prompt_name in ["core_expertise", "technical_snapshot"]:
-                n_words = N_CORE_WORDS if prompt_name == "core_expertise" else N_TECHNICAL_WORDS
-                kwargs = {
-                    "job_data": self.job_data,
-                    "professional_data": professional_data,
-                    "base_section": base_section,
-                    "n_words": n_words
-                    }
-                tasks[prompt_name] = asyncio.create_task(service.send_request(**kwargs))
-
-            elif prompt_name == "professional_summary":
+            if prompt_name == "professional_summary":
                 kwargs = {
                     "job_data": self.job_data,
                     "professional_data": professional_data,
