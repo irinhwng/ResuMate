@@ -8,6 +8,7 @@ from app.utils.logger import LoggerConfig
 from langchain.text_splitter import MarkdownHeaderTextSplitter
 from datetime import datetime
 from docx import Document
+import subprocess
 
 GENERATED_CL_PATH = os.getenv("GENERATED_CL_PATH")
 CHAT_MODEL = os.getenv("CHAT_MODEL")
@@ -157,6 +158,23 @@ class CoverLetterRendererController:
                     all_paragraphs[i_par_edit].runs[i_end].font.name = "Calibri"
                     all_paragraphs[i_par_edit].runs[i_end].font.size = 133350
 
+    def convert_cl_to_pdf(self, docx_fp_str: str):
+        generated_folder_p = os.path.dirname(docx_fp_str)
+        docx_filename_str = docx_fp_str.split("/")[-1]
+        try:
+            self.logger.info(f"Converting {docx_filename_str} to pdf...")
+            subprocess.run([
+                "/Applications/LibreOffice.app/Contents/MacOS/soffice", #TODO: could be cleaner
+                "--headless",
+                "--convert-to", "pdf:writer_pdf_Export",
+                "--outdir", generated_folder_p,
+                docx_fp_str
+                ], check = True)
+            self.logger.info(f"Successfully converted {docx_filename_str} to pdf")
+            return f"{generated_folder_p}/{docx_filename_str.replace('.docx', '.pdf')}"
+        except subprocess.CalledProcessError as e:
+            self.logger.error(f"Error converting {docx_filename_str} to pdf: {e}")
+            raise
 
     @LoggerConfig().log_execution
     def execute(self):
@@ -181,8 +199,12 @@ class CoverLetterRendererController:
 
         doc.save(docx_fp)
         self.logger.info(f"Successfully saved cover letter at:\n\t\t{self.data_dir}/{self.source_name}.docx")
-        return f"{self.data_dir}/{self.source_name}.docx"
 
+        docx_fp_str = f"{self.data_dir}/{self.source_name}.docx"
+
+        # TODO: pdf conversion placeholder here
+        pdf_fp_str = self.convert_cl_to_pdf(docx_fp_str)
+        return pdf_fp_str
 if __name__ == "__main__":
     t_cl_path = "/Users/erinhwang/Projects/ResuMate/experiments/base_docs/thee_cover_letter_rendrrr.docx"
     t_md = """
