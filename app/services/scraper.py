@@ -108,6 +108,15 @@ class JobScraperService:
         driver_dir = os.path.join(current_dir, "drivers")#install chrome driver within the repo
         os.makedirs(driver_dir, exist_ok=True)
 
+        # pdf path
+        pdf_path = f"{self.data_dir}/job_{source_type}.pdf"
+        pdf_path = os.path.abspath(pdf_path)
+
+        #cache selenium calls - check if pdf already exists
+        if os.path.exists(pdf_path):
+            self.logger.info(f"PDF already exists at: {pdf_path}. Skipping scraping")
+            return pdf_path
+
         if self.driver == "chrome":
             web_driver = self.setup_chrome_driver(driver_dir)
         elif self.driver == "safari":
@@ -155,11 +164,6 @@ class JobScraperService:
             # Wait for the page to fully render
             time.sleep(3)
             ################COOKIE TEST ENDS################
-
-            # Save the rendered page as a PDF
-            # Use a Chrome DevTools command for generating the PDF
-            pdf_path = f"{self.data_dir}/job_{source_type}.pdf"
-            pdf_path = os.path.abspath(pdf_path)
 
             if self.driver == "chrome":
                 self.generate_pdf_chrome(web_driver, pdf_path)
