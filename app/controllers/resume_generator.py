@@ -21,10 +21,11 @@ class ResumeGeneratorController:
         job_data (str): The job descriptions to generate the resume from
     """
 
-    def __init__(self, resume_data: str, job_data: str):
+    def __init__(self, resume_data: str, job_data: str, keywords: str):
         self.logger = LoggerConfig().get_logger(__name__)
         self.resume_data = self.cleanse_text(resume_data)
         self.job_data = self.cleanse_text(job_data)
+        self.keywords = keywords
         self.splitter =  MarkdownHeaderTextSplitter(headers_to_split_on=[
             # ("#", "Professional Sumary"),
             ("##", "Professional Experience")
@@ -71,8 +72,9 @@ class ResumeGeneratorController:
             raise ValueError("Title not found in resume text")
 
     @LoggerConfig().log_execution
-    async def generate_content(self):
+    async def generate_content(self, chosen_sections: dict):
         """Execute resume generation process"""
+        #TODO: possibility that professional_data is not reuiqred in the future
         resume_sections, professional_data = self.split_md_text()
         tasks = {}
 
@@ -93,17 +95,11 @@ class ResumeGeneratorController:
                 # iterate over each section in professional experience
                 for idx, exp_section in enumerate(base_section, start=1):
                     task_name = self.extract_title(exp_section)
-                    #TODO: highest priority if others are interested in usnig this
-                    if "Security Software" in task_name:
-                        n_bullets = N_PRIMARY_BULLETS
-                    # elif "Independent" in task_name:
-                    #     n_bullets = "1" #TODO
-                    else:
-                        n_bullets = N_SECONDARY_BULLETS
+                    chosen_section = chosen_sections[task_name]
+
                     kwargs = {
-                        "job_data": self.job_data,
-                        "base_section": exp_section,
-                        "n_bullets": n_bullets
+                        # "job_data": self.job_data,
+                        "base_section": chosen_section,
                     }
                     tasks[task_name] = asyncio.create_task(service.send_request(**kwargs))
 
@@ -127,6 +123,60 @@ class ResumeGeneratorController:
         responses = await asyncio.gather(*tasks.values())
         results = {section: result for section, result in zip(tasks.keys(),responses)}
         return results
+
+    @LoggerConfig().log_execution
+    async def retrieve_n_bullets(self):
+        """
+        Retrieve n best number of bullets for professional experience sections
+        """
+        resume_sections, professional_data = self.split_md_text()
+        tasks = {}
+
+        if "professional_experience" in resume_sections:
+            experience_list = resume_sections["professional_experience"]
+            prompt_name = "professional_experience_pick_n_bullets"
+        else:
+            self.logger.error(
+                f"Prompt name should be professional_experience but got {prompt_name}",
+                )
+            raise ValueError(f"Prompt name should be professional_experience but got {prompt_name}")
+
+        #start async retrieval tasks")
+        for idx, exp_section in enumerate(experience_list):
+            task_name = self.extract_title(exp_section)
+            service = ChatGPTRequestService(prompt_name = prompt_name)
+
+            if "Security Software" in task_name:
+                n_bullets = N_PRIMARY_BULLETS
+            else:
+                n_bullets = N_SECONDARY_BULLETS
+
+            kwargs = {
+                    "base_section": exp_section,
+                    "n_bullets": n_bullets,
+                    "keywords": self.keywords,
+                }
+
+            tasks[task_name] = asyncio.create_task(service.send_request(**kwargs))
+
+        n = len(tasks)
+        self.logger.info("Creating {n} retrieval tasks for %s", prompt_name)
+        responses = await asyncio.gather(*tasks.values())
+        results = {section: result for section, result in zip(tasks.keys(),responses)}
+        return results
+
+    @LoggerConfig().log_execution
+    async def execute(self):
+        """
+        Execute the resume generation process
+        """
+        n_bullets_result = await self.retrieve_n_bullets()
+        content = await self.generate_content(n_bullets_result)
+
+        return content
+
+
+
 
     # 1: Core Expertise
         # full job_data

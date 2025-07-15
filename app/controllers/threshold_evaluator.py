@@ -10,6 +10,7 @@ import pprint
 from pathlib import Path
 import requests
 import warnings
+import re
 
 from dotenv import load_dotenv
 
@@ -97,8 +98,12 @@ class SemanticSimilarityEvaluator:
         Main method to run the semantic search either using given SQL query or its natural
         language equivalent using granite-code-instruct
         """
+        #only retrieve job core responsibilities and requirements
+        match = re.search(r"(.*?)# Additional Information", job_str, re.DOTALL)
+        job_data_result = match.group(1).strip()
+
         # turn list of CHG descriptions to embeddings
-        ss_response = self.semantic_search(resume_str, job_str)
+        ss_response = self.semantic_search(resume_str, job_data_result)
         self.logger.info("Semantic similarity completed: cosine similarity score is:%s", ss_response)
         return ss_response
 

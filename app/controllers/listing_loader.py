@@ -8,6 +8,7 @@ import os
 from app.utils.logger import LoggerConfig
 from app.services.scraper import JobScraperService
 from app.services.extractor import FileExtractorChatGPT
+from app.services.generator import ChatGPTRequestService
 import asyncio
 
 WEBDRIVER = os.getenv("WEBDRIVER")
@@ -46,12 +47,27 @@ class JobListingLoader:
         return job_str
 
     @LoggerConfig().log_execution
+    async def _extract_keywords(self, job_str: str):
+        """Extract keywords from the job listing content"""
+        tasks = {}
+        self.logger.info("Extracting keywords from job listing content...")
+        curr_prompt_name = "job_listing_keywords_extractor"
+        service = ChatGPTRequestService(prompt_name=curr_prompt_name)
+
+        kwargs = {
+            "input_data": job_str
+        }
+        response = await service.send_request(**kwargs)
+        return response
+
+    @LoggerConfig().log_execution
     async def process(self, url: str):
         """Execute job listing loading process"""
         pdf_path = await self._convert_listing(url)
         self.file_path = pdf_path
         job_str = await self._extract_pdf(pdf_path)
-        return job_str
+        keywords = await self._extract_keywords(job_str)
+        return job_str, keywords
 
 async def test_main():
     job_loader = JobListingLoader(

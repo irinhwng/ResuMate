@@ -24,8 +24,15 @@ from app.controllers.cl_renderer import CoverLetterRendererController
 import re
 from typing import Optional
 
+from mock.JobListingLoader import mock_job_listing_loader_process
+from mock.ResumeLoader import mock_resume_loader_process
+
+# patch
+# JobListingLoader.process = mock_job_listing_loader_process
+# ResumeLoader.process = mock_resume_loader_process
+
 # TODO:tmp storage --> use opensearch later on (close to production)
-resume_storage = {"erin": "/Users/erinhwang/Projects/ResuMate/data/uploaded_resumes/thee_resume_rendrr_ace.docx"} #key is uuiid, val is filepath
+resume_storage = {"erin": "/Users/erinhwang/Projects/ResuMate/data/uploaded_resumes/thee_resume_rendrr_ace_v3.docx"} #key is uuiid, val is filepath
 cl_storage = {"erin": "/Users/erinhwang/Projects/ResuMate/data/uploaded_cls/thee_cover_letter_rendrrr_noSim.docx"}
 
 logger = LoggerConfig().get_logger(__name__)
@@ -231,18 +238,16 @@ async def scrape_url(
             job_loader_task = job_loader.process(url)
             resume_loader_task = ResumeLoader(resume_storage[resumate_uuid]).process()
 
-            job_data, resume_data = await asyncio.gather(job_loader_task, resume_loader_task)
-            match = re.search(r"(.*?)# Additional Information", job_data, re.DOTALL)
-            job_data_result = match.group(1).strip()
+            (job_data, keywords), resume_data = await asyncio.gather(job_loader_task, resume_loader_task)
 
-            semantic_scores = SemanticSimilarityEvaluator().process(resume_data, job_data_result)
+            semantic_scores = SemanticSimilarityEvaluator().process(resume_data, job_data)
 
             if semantic_scores["soft_cosine_similarity"] >= SOFT_COSINE_THRESHOLD:
                 logger.info("Semantic similarity threshold met:\n\t%s", semantic_scores)
                 #generate the content for the resume and cover letter
 
                 #TODO: figure out the optional cover letter here - how can we determine if the cl should be rendered?
-                resume_generator_task = ResumeGeneratorController(resume_data, job_data).generate_content()
+                resume_generator_task = ResumeGeneratorController(resume_data, job_data, keywords).execute()
 
                 cl_keyword_extractor_task = CoverLetterGeneratorController(job_loader.file_path).process()
                 resume_content, cl_keyword_md = await asyncio.gather(resume_generator_task, cl_keyword_extractor_task)
