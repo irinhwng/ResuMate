@@ -22,7 +22,7 @@ from app.utils.logger import LoggerConfig
 from app.utils.prompt_loader import initialize_prompt
 import asyncio
 
-CHAT_MODEL = os.getenv("CHAT_MODEL")
+CHAT_MODEL_EXTRACTOR = os.getenv("CHAT_MODEL_EXTRACTOR")
 
 # class PDFExtractorDeepSearch:
 #     # TODO: add args and retuns in docstring
@@ -104,7 +104,7 @@ def read_docx_sync(file_path: Path):
 class FileExtractorChatGPT:
     # TODO: add args and retuns in docstring
     """Extract job details verbatim using OpenAI's ChatGPT suite"""
-    def __init__(self, prompt_name: str, file_path: str, model_name: str = CHAT_MODEL):
+    def __init__(self, prompt_name: str, file_path: str, model_name: str = CHAT_MODEL_EXTRACTOR):
         self.logger = LoggerConfig().get_logger(__name__)
         self.prompt_name = prompt_name
         load_dotenv()

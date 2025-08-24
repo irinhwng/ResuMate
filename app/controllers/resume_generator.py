@@ -166,14 +166,36 @@ class ResumeGeneratorController:
         return results
 
     @LoggerConfig().log_execution
+    async def reorder_contents(self, content: dict):
+        """
+        Reorder the resume contents based on importance
+        """
+        tasks = {}
+        prompt_name = "reorder_resume_sections"
+        for job_title, bullets_str in content.items():
+            service = ChatGPTRequestService(prompt_name=prompt_name)
+            kwargs = {
+                "content": bullets_str,
+                "job_data": self.job_data
+            }
+            tasks[job_title] = asyncio.create_task(service.send_request(**kwargs))
+
+        n = len(tasks)
+        self.logger.info("Creating {n} reordering tasks for %s", prompt_name)
+        responses = await asyncio.gather(*tasks.values())
+        results = {section: result for section, result in zip(tasks.keys(),responses)}
+        return results
+
+    @LoggerConfig().log_execution
     async def execute(self):
         """
         Execute the resume generation process
         """
         n_bullets_result = await self.retrieve_n_bullets()
         content = await self.generate_content(n_bullets_result)
-
-        return content
+        reordered_content = await self.reorder_contents(content)
+        return reordered_content
+        # return content #content type is dict where key is title name and value is markdown string
 
 
 
