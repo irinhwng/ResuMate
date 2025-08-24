@@ -116,9 +116,12 @@ class CoverLetterRendererController:
                 # print(full_matches)
                 for each_full_match in full_matches:
                     # print(each_full_match[0])
-                    all_paragraphs[i_par_edit].runs[each_full_match[0]].text = all_paragraphs[i_par_edit].runs[each_full_match[0]].text.replace(each_full_match[1], cleansed_content[each_full_match[1]])
-                    all_paragraphs[i_par_edit].runs[each_full_match[0]].font.name = "Calibri"
-                    all_paragraphs[i_par_edit].runs[each_full_match[0]].font.size = 133350
+                    if each_full_match[1] == "[PositionName]": #this is the fix... want to make sure PositioName keeps the original font and position
+                        all_paragraphs[i_par_edit].runs[each_full_match[0]].text = all_paragraphs[i_par_edit].runs[each_full_match[0]].text.replace(each_full_match[1], cleansed_content[each_full_match[1]])
+                    else:
+                        all_paragraphs[i_par_edit].runs[each_full_match[0]].text = all_paragraphs[i_par_edit].runs[each_full_match[0]].text.replace(each_full_match[1], cleansed_content[each_full_match[1]])
+                        all_paragraphs[i_par_edit].runs[each_full_match[0]].font.name = "Calibri"
+                        all_paragraphs[i_par_edit].runs[each_full_match[0]].font.size = 133350
 
             if start_matches:
                 assert len(start_matches) == len(end_matches)
