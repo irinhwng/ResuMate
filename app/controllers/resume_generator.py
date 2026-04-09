@@ -121,7 +121,7 @@ class ResumeGeneratorController:
             self.logger.info("Creating generation task for %s", prompt_name)
 
         responses = await asyncio.gather(*tasks.values())
-        results = {section: result for section, result in zip(tasks.keys(),responses)}
+        results = {section: result.replace("—", "-") for section, result in zip(tasks.keys(),responses)}
         return results
 
     @LoggerConfig().log_execution
