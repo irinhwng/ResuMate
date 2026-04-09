@@ -146,7 +146,7 @@ class ResumeGeneratorController:
             task_name = self.extract_title(exp_section)
             service = ChatGPTRequestService(prompt_name = prompt_name)
 
-            if "Security Software" in task_name:
+            if "IBM" in task_name: #TODO: Seb specific
                 n_bullets = N_PRIMARY_BULLETS
             else:
                 n_bullets = N_SECONDARY_BULLETS
