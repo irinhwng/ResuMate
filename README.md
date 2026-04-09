@@ -29,3 +29,14 @@ ResuMate is an advanced tool that simplifies the job application process by auto
 (coming soon)
 - internal notes (pip install requirements text, ensure dirs exist, !brew install --cask libreoffice)
 - mention that the application has been tested vigorously on macOS (nothing else)
+
+### Next To-DOs
+- the possibility of transoforming some of these class loaders into langgraph nodes. ALthough this is a pretty seamless application
+- Ideally, I would like to turn this into LangGraph
+- The next step is to add a queue so that the appliation can handle multiple jobs (in terms of handling multiple jobs at the same time depends on  my knowledge on celery)
+- but there will be two containers. Container 1: redis (which stashes the job id, and the corresponsing metadata of a run.) COntainer 2: the resumate application and celery. Ideally I would like celery to handle at least 2 workers in parallel using the minimum amount of CPU and RAM (at the the prototype level)
+- On the redis side: look into a UI or terminal commands to look for the job ids and the corresponding metadata
+- To simplify:
+    - LangGraph (possibly)
+    - Redis (cache database)
+    - Celery (belongs to container 2)
