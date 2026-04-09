@@ -44,7 +44,7 @@
 {
     "prompt_name": "job_listing_keywords_extractor",
     "description": "Extracts keywords from the job listing",
-    "prompt_value": "Extract keywords and key phrases from the following data science job description according to these rules:\n - Only extract unigrams, bigrams and trigrams (1-, 2-, and 3-word phrases)\n - Extract hard and soft skills relevant to the ideal candidate for the job\n - Exclude company names, job titles, and general phrases that are not skills\n - Prioritize technical skills, tools, and technology stacks commonly used in data science roles\n - Include soft skills only if specifically mentioned as requirements\n - Return the list in the markdown bulletpoint format\n\n Job Description:\n{input_data}",
+    "prompt_value": "Extract keywords and key phrases from the following job description according to these rules:\n - Only extract unigrams, bigrams and trigrams (1-, 2-, and 3-word phrases)\n - Extract hard and soft skills relevant to the ideal candidate for the job\n - Exclude company names, job titles, and general phrases that are not skills\n - Prioritize technical skills, tools, and technology stacks commonly used in marketing/product design/content design roles\n - Include soft skills only if specifically mentioned as requirements\n - Return the list in the markdown bulletpoint format\n\n Job Description:\n{input_data}",
     "input_parameters": ["input_data"]
 },
 {

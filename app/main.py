@@ -32,8 +32,8 @@ from mock.ResumeLoader import mock_resume_loader_process
 # ResumeLoader.process = mock_resume_loader_process
 
 # TODO:tmp storage --> use opensearch later on (close to production)
-resume_storage = {"erin": "/Users/erinhwang/Projects/ResuMate/data/uploaded_resumes/thee_resume_rendrr_ace_v3.docx"} #key is uuiid, val is filepath
-cl_storage = {"erin": "/Users/erinhwang/Projects/ResuMate/data/uploaded_cls/thee_cover_letter_rendrrr_noSim.docx"}
+resume_storage = {"sebastian": "/Users/erinhwang/Projects/ResuMate/data/uploaded_resumes/thee_resume_rendrr_ace_v3_sebastian.docx"} #key is uuiid, val is filepath
+cl_storage = {"sebastian": "/Users/erinhwang/Projects/ResuMate/data/uploaded_cls/thee_cover_letter_rendrrr_noSim.docx"}
 
 logger = LoggerConfig().get_logger(__name__)
 
